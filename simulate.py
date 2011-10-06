@@ -3,12 +3,13 @@ import agent
 import random
 from scipy.stats import poisson
 
-N_ACTS = 100
-N_POPULATION = 100
-N_ROUNDS = 10000
-N_OBSERVE = 3
-MODE_SPATIAL = False
-MODE_CUMULATIVE = False
+N_ACTS = 100                # Immutable
+N_POPULATION = 100          # Immutable
+N_ROUNDS = 10000            # Immutable
+N_OBSERVE = 3               # Number of exploiters observed at a time; range [1-10]
+MODE_SPATIAL = False        # Whether demes are enabled
+MODE_CUMULATIVE = False     # Whether REFINE is available 
+P_COPYFAIL = 0.1            # Chance of observation failure; range [0.0-0.5]
 
 def randpayoff(distribution = 'default'):
     if (distribution == 'default'):
@@ -19,18 +20,18 @@ class NotImplementedError(Exception):
 
 class Individual:
     def __init__(self):
-        self.roundsalive = 0
+        self.roundsAlive = 0
         self.repertoire = {}
         self.refinements = {}
-        self.historyrounds = []
-        self.historymoves = []
-        self.historyacts = []
+        self.historyRounds = []
+        self.historyMoves = []
+        self.historyActs = []
         self.deme = 0
         
         # We store a set of acts that the individual hasn't learned yet. The
         # innovate() function will random select an act from this set, learn
         # its payoff, and remove the act from the set.
-        self.unknown_acts = set(range(0, N_ACTS)
+        self.unknownActs = set(range(0, N_ACTS))
     
     def reproduce(self):
         """
@@ -39,8 +40,6 @@ class Individual:
         """
         raise NotImplementedError()
         
-    def innovate(self,  acts):
-            
         
 class Deme:
     
@@ -59,6 +58,8 @@ class Simulate:
     def __init__(self):
         self.mode_spatial = MODE_SPATIAL
         self.mode_cumulative = MODE_CUMULATIVE
+        self.N_observe = N_OBSERVE
+        self.P_copyFail = P_COPYFAIL
         
         if (self.mode_spatial):
             self.N_demes = 3
@@ -81,44 +82,80 @@ class Simulate:
         self.round += 1
         
         for d in range(0,  N_demes):
+            
+            observers = []
+            exploiters = []
+            
             for individual in self.demes[d].population:
-                individual.roundsalive += 1
-                move_act = agent.xmove(individual.roundsalive, 
+                individual.roundsAlive += 1
+                move_act = agent.move(individual.roundsAlive, 
                                       individual.repertoire, 
-                                      individual.historyrounds,
-                                      individual.historymoves, 
-                                      individual.historyacts
+                                      individual.historyRounds,
+                                      individual.historyMoves, 
+                                      individual.historyActs
                                       )
-                if (move_act[0] == OBSERVE):
-                    for i in range(0, N_OBSERVE):
-                        raise NotImplementedError()
-                else:
-                    individual.historyrounds += individual.roundsalive
-                    individual.historymoves += move_act
+                individual.historyRounds += [individual.roundsAlive]
+                individual.historyMoves += move_act[0]
+
+                if (move_act[0] == INNOVATE):
+                    """
+                    INNOVATE selects a new act at random from those acts not currently present in
+                    the individual’s repertoire and adds that act and its exact payoff to the
+                    behavioural repertoire of the individual. If an individual already
+                    has the 100 possible acts in its repertoire, it gains no new act from playing
+                    INNOVATE. In the cumulative case, the new act is acquired with refinement level 0.
+                    """
+                    if (len(individual.unknownActs) > 0):
+                        act = random.sample(individual.unknownActs, 1)[0]
+                        individual.repertoire[act] = self.demes[d].acts[act]
+                        if self.mode_cumulative:
+                            individual.refinements[act] = 0
+                        individual.unknownActs.remove(act)
+                        
+                elif (move_act[0] == OBSERVE):
+                    # We can't immediately resolve OBSERVE, because we first need to run through
+                    # all individuals' moves to see who's EXPLOITing. To this end, we'll build
+                    # up a list of the respective individuals OBSERVing and EXPLOITing this round,
+                    # and resolve the moves later.
                     
-                    if (move_act[0] == INNOVATE):
-                        """
-                        INNOVATE selects a new act at random from those acts not currently present in
-                        the individual’s repertoire and adds that act and its exact payoff to the
-                        behavioural repertoire of the individual. If an individual already
-                        has the 100 possible acts in its repertoire, it gains no new act from playing
-                        INNOVATE. In the cumulative case, the new act is acquired with refinement level 0.
-                        """
-                        if (len(individual.unknown_acts) > 0):
-                            act = random.sample(individual.unknown_acts, 1)[0]
-                            individual.repertoire[act] = self.demes[d].acts[act]
-                            if self.mode_cumulative:
-                                individual.refinements[act] = 0
-                            individual.unknown_acts.remove(act)
-                                
-                    elif (move_act[0] == EXPLOIT):
-                        raise NotImplementedError()
-                    elif (move_act[0] == REFINE):
-                        raise NotImplementedError()
-                    else:
-                        raise AttributeError('Unknown action %d',  move_act[0])
+                    observers += [individual]
+                            
+                elif (move_act[0] == EXPLOIT):
+                    
+                    # An individual can only exploit an act that it has already learned
+                    if (individual.repertoire.has_key(move_act[1])):
+                        act = move_act[1]
+                        payoff = self.demes[d].acts[act]
+                        if individual.refinements.has_key(act):
+                            payoff += individual.refinements[act]
+                        individual.historyActs += [act]
+                        individual.historypayoffs += [payoff]
+                        exploiters += [individual]
+                    
+                elif (move_act[0] == REFINE):
+                    raise NotImplementedError()
+                else:
+                    raise AttributeError('Unknown action %d',  move_act[0])
                 if individual.reproduce():
                     self.demes[d].population += Individual()
+            
+            # Next, resolve all observations in this deme
+            for observer in observers:
+                if self.mode_model_bias:
+                    # TODO: Add model-bias extension to observers
+                    raise NotImplementedError()
+                else:
+                    # Default behaviour: pick N_OBSERVE exploiters at random (if there are that many)
+                    exploiter_sample = random.sample(exploiters, min(self.N_observe, len(exploiters)))
+                    for exploiter in exploiter_sample:
+                        # There is a random chance that we simply fail to learn by observing
+                        if (random.random() > self.P_copyFail):
+                            # Pick out the exploiter's last act and associated payoff
+                            act = exploiter.historyActs[-1]
+                            payoff = exploiter.historyPayoffs[-1]
+                            # The exact payoff isn't learned; rather, a sample from a poisson distribution
+                            observer.historyActs += [act]
+                            observer.historyPayoffs += [poisson.rvs(payoff)]
         
         self.modify_environment()
         
