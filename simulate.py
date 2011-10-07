@@ -21,6 +21,8 @@ class NotImplementedError(Exception):
 class Individual:
     def __init__(self):
         self.roundsAlive = 0
+        self.timesCopied = 0
+        self.N_offspring = 0
         self.repertoire = {}
         self.refinements = {}
         self.historyRounds = []
@@ -138,24 +140,47 @@ class Simulate:
                     raise AttributeError('Unknown action %d',  move_act[0])
                 if individual.reproduce():
                     self.demes[d].population += Individual()
+                
+            # If we're playing in the model-bias mode, we need to build up a list of all individuals playing EXPLOIT
+            # this round.    
+            if self.mode_model_bias:
+                exploiterData = []
+                i = 0
+                for exploiter in exploiters:
+                    exploiterData += [(i, 
+                                       poisson.rvs(exploiter.roundsAlive),
+                                       poisson.rvs(sum(exploiter.historyPayoffs)),
+                                       poisson.rvs(exploiter.timesCopied), 
+                                       poisson.rvs(exploiter.N_offspring)
+                                     )]
+                    i += 1
             
             # Next, resolve all observations in this deme
             for observer in observers:
                 if self.mode_model_bias:
-                    # TODO: Add model-bias extension to observers
-                    raise NotImplementedError()
+                    # Ask the individual whom he wants to observe
+                    preferred_teachers = agent.observe_who(exploiterData)
+                    exploiter_sample = preferred_teachers[0:min(self.N_observe, len(preferred_teachers))]
                 else:
                     # Default behaviour: pick N_OBSERVE exploiters at random (if there are that many)
                     exploiter_sample = random.sample(exploiters, min(self.N_observe, len(exploiters)))
-                    for exploiter in exploiter_sample:
-                        # There is a random chance that we simply fail to learn by observing
-                        if (random.random() > self.P_copyFail):
-                            # Pick out the exploiter's last act and associated payoff
-                            act = exploiter.historyActs[-1]
-                            payoff = exploiter.historyPayoffs[-1]
-                            # The exact payoff isn't learned; rather, a sample from a poisson distribution
-                            observer.historyActs += [act]
-                            observer.historyPayoffs += [poisson.rvs(payoff)]
+                for exploiter in exploiter_sample:
+                    # There is a random chance that we simply fail to learn by observing
+                    if (random.random() > self.P_copyFail):
+                        # Pick out the exploiter's last act and associated payoff
+                        act = exploiter.historyActs[-1]
+                        payoff = exploiter.historyPayoffs[-1]
+                        if self.mode_cumulative and (exploiter.refinements.has_key(act)):
+                            refinement = exploiter.refinements[act]
+                            observer.refinements[act] = refinement
+                        else:
+                            refinement = 0
+                            
+                        # The exact payoff isn't learned; rather, a sample from a poisson distribution
+                        observer.historyActs += [act]
+                        observer.historyPayoffs += [poisson.rvs(payoff + refinement)]
+                        observer.unknownActs.remove(act)
+                        exploiter.timesCopied += 1
         
         self.modify_environment()
         

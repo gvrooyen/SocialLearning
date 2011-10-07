@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project SocialLearning -->
-<!-- Saved: 2011-10-03, 23:54:46 -->
+<!-- Saved: 2011-10-07, 22:03:18 -->
 <!-- Copyright (C) 2011 G-J van Rooyen, gvrooyen@sun.ac.za -->
 <Project version="4.6">
   <Language>en</Language>
@@ -26,6 +26,7 @@
   <Interfaces>
   </Interfaces>
   <Others>
+    <Other>Social_Learning_Strategies_Tournament_II_Rules.pdf</Other>
   </Others>
   <Vcs>
     <VcsType>None</VcsType>
