@@ -8,12 +8,13 @@ N_POPULATION = 100          # Immutable
 N_ROUNDS = 10000            # Immutable
 N_OBSERVE = 3               # Number of exploiters observed at a time; range [1-10]
 MODE_SPATIAL = False        # Whether demes are enabled
-MODE_CUMULATIVE = False     # Whether REFINE is available 
+MODE_CUMULATIVE = False     # Whether REFINE is available
+MODE_MODEL_BIAS = False     # Whether observe_who() can be specified
 P_COPYFAIL = 0.1            # Chance of observation failure; range [0.0-0.5]
 
 def randpayoff(distribution = 'default'):
     if (distribution == 'default'):
-        return int(random.expovariate(0.1)) 
+        return int(random.expovariate(0.1)+1.0) 
         
 class NotImplementedError(Exception):
     pass
@@ -28,6 +29,8 @@ class Individual:
         self.historyRounds = []
         self.historyMoves = []
         self.historyActs = []
+        self.historyPayoffs = []
+        self.historyDemes = []
         self.deme = 0
         
         # We store a set of acts that the individual hasn't learned yet. The
@@ -40,7 +43,7 @@ class Individual:
         Returns True if this individual should reproduce, based on its
         total lifetime payoff.
         """
-        raise NotImplementedError()
+        return False
         
         
 class Deme:
@@ -48,20 +51,29 @@ class Deme:
     def __init__(self):
         self.acts = [randpayoff() for x in range(0, N_ACTS)]
         self.population = [Individual() for x in range(0,  N_POPULATION)]
+        self.stat_act_updates = 0
 
-    def modify_environment(self):
+    def modify_environment(self, p_c = P_COPYFAIL):
         for i in range(0, N_ACTS):
-            if (random.random() <= self.p_c):
+            if (random.random() <= p_c):
                 self.acts[i] = randpayoff()
+                self.stat_act_updates += 1  # Keep track of act update statistics
 
 
 class Simulate:
     
-    def __init__(self):
-        self.mode_spatial = MODE_SPATIAL
-        self.mode_cumulative = MODE_CUMULATIVE
-        self.N_observe = N_OBSERVE
-        self.P_copyFail = P_COPYFAIL
+    def __init__(self, mode_spatial = MODE_SPATIAL, 
+                       mode_cumulative = MODE_CUMULATIVE,
+                       mode_model_bias = MODE_MODEL_BIAS, 
+                       N_observe = N_OBSERVE, 
+                       P_copyFail = P_COPYFAIL, 
+                       N_rounds = N_ROUNDS):
+        self.mode_spatial = mode_spatial
+        self.mode_cumulative = mode_cumulative
+        self.mode_model_bias = mode_model_bias
+        self.N_observe = N_observe
+        self.P_copyFail = P_copyFail
+        self.N_rounds = N_rounds
         
         if (self.mode_spatial):
             self.N_demes = 3
@@ -74,35 +86,68 @@ class Simulate:
         self.p_c = 0.001    # Probability that the basic payoff of an act will change in a single simulation round
         
     def modify_environment(self):
-        for d in range(0, N_demes):
-            self.demes[d].modify_environment
+        for d in range(0, self.N_demes):
+            self.demes[d].modify_environment(self.p_c)
     
     def migrate(self):
         raise NotImplementedError()
     
-    def step(self):
+    def step(self,  test_commands = None):
+        """
+        The optional test_commands parameter (default None) is provided to allow the test suite to dictate "canned"
+        commands to the population (i.e. ignoring agent.move()'s strategy. The data structure should consist of a tuple
+        of commands for each deme, showing the moves for the first few members of the population for this round, e.g.:
+        
+            test_commands =   ( ( (INNOVATE,), (OBSERVE,), (EXPLOIT,0), (REFINE,1) ),    # first deme
+                                ( (EXPLOIT,0), (EXPLOIT, 1), (OBSERVE,), (INNOVATE,) )   # second deme
+                              )
+        
+        This forces the first four members of the first and the second deme to make the specified moves. All other
+        remaining individuals in the population are forced to play INNOVATE.
+        
+        """
         self.round += 1
         
-        for d in range(0,  N_demes):
+        for d in range(0,  self.N_demes):
             
             observers = []
             exploiters = []
+            i = 0;  # Used to keep count of individuals for when using test commands
             
             for individual in self.demes[d].population:
                 individual.roundsAlive += 1
-                move_act = agent.move(individual.roundsAlive, 
-                                      individual.repertoire, 
-                                      individual.historyRounds,
-                                      individual.historyMoves, 
-                                      individual.historyActs
-                                      )
+                individual.historyDemes += [d]
+                
+                if (test_commands == None):
+                
+                    move_act = agent.move(individual.roundsAlive, 
+                                          individual.repertoire, 
+                                          individual.historyRounds,
+                                          individual.historyMoves, 
+                                          individual.historyActs, 
+                                          individual.historyPayoffs, 
+                                          individual.historyDemes, 
+                                          d, 
+                                          self.mode_model_bias, 
+                                          self.mode_cumulative, 
+                                          self.mode_spatial
+                                          )
+                
+                else:
+                    # The test suite has provided "canned" moves for us to use
+                    
+                    try:
+                        move_act = test_commands[d][i]
+                    except IndexError:
+                        move_act = (INNOVATE, )
+                        
                 individual.historyRounds += [individual.roundsAlive]
-                individual.historyMoves += move_act[0]
+                individual.historyMoves += [move_act[0]]
 
                 if (move_act[0] == INNOVATE):
                     """
                     INNOVATE selects a new act at random from those acts not currently present in
-                    the individual’s repertoire and adds that act and its exact payoff to the
+                    the individual's repertoire and adds that act and its exact payoff to the
                     behavioural repertoire of the individual. If an individual already
                     has the 100 possible acts in its repertoire, it gains no new act from playing
                     INNOVATE. In the cumulative case, the new act is acquired with refinement level 0.
@@ -110,6 +155,8 @@ class Simulate:
                     if (len(individual.unknownActs) > 0):
                         act = random.sample(individual.unknownActs, 1)[0]
                         individual.repertoire[act] = self.demes[d].acts[act]
+                        individual.historyActs += [act]
+                        individual.historyPayoffs += [individual.repertoire[act]]
                         if self.mode_cumulative:
                             individual.refinements[act] = 0
                         individual.unknownActs.remove(act)
@@ -125,21 +172,40 @@ class Simulate:
                 elif (move_act[0] == EXPLOIT):
                     
                     # An individual can only exploit an act that it has already learned
-                    if (individual.repertoire.has_key(move_act[1])):
+                    if individual.repertoire.has_key(move_act[1]):
                         act = move_act[1]
                         payoff = self.demes[d].acts[act]
                         if individual.refinements.has_key(act):
                             payoff += individual.refinements[act]
                         individual.historyActs += [act]
-                        individual.historypayoffs += [payoff]
+                        individual.historyPayoffs += [payoff]
                         exploiters += [individual]
                     
                 elif (move_act[0] == REFINE):
-                    raise NotImplementedError()
+                    
+                    act = move_act[1]
+                    
+                    # An individual can only exploit an act that it has already learned
+                    if (not self.mode_cumulative):
+                        raise ValueError("REFINE is not available in a non-cumulative simulation.")
+                    elif (not individual.repertoire.has_key(act)):
+                        raise KeyError("Attempt to refine an unknown act")
+                    else:
+                        try:
+                            individual.refinements[act] += 1
+                        except KeyError:
+                            individual.refinements[act] = 0
+                            
+                        individual.historyActs += [act]
+                        individual.historyPayoffs += [self.demes[d].acts[act] + individual.refinements[act]]
+                        individual.refinements[act] = individual.historyPayoffs[-1]
+                    
                 else:
                     raise AttributeError('Unknown action %d',  move_act[0])
                 if individual.reproduce():
                     self.demes[d].population += Individual()
+                    
+                i += 1  # Used to keep count of individuals for when using test commands
                 
             # If we're playing in the model-bias mode, we need to build up a list of all individuals playing EXPLOIT
             # this round.    
@@ -179,7 +245,15 @@ class Simulate:
                         # The exact payoff isn't learned; rather, a sample from a poisson distribution
                         observer.historyActs += [act]
                         observer.historyPayoffs += [poisson.rvs(payoff + refinement)]
-                        observer.unknownActs.remove(act)
+                        observer.repertoire[act] = observer.historyPayoffs[-1]
+                        
+                        # We rather use a set difference to remove the observed act from the list of
+                        # unknowns, in case the agent has (suboptimally) tried to observe an event
+                        # that it already knew. In such a case, unknownActs.remove(act) would raise
+                        # an exception (whereas a set difference is always defined).
+                        
+                        observer.unknownActs -= set([act])
+                        
                         exploiter.timesCopied += 1
         
         self.modify_environment()
@@ -188,5 +262,5 @@ class Simulate:
             self.migrate()
     
     def run(self):
-        for i in range(0, N_ROUNDS):
+        for i in range(0, self.N_rounds):
             self.step()
