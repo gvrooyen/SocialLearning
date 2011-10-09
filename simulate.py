@@ -3,14 +3,17 @@ import agent
 import random
 from scipy.stats import poisson
 
-N_ACTS = 100                # Immutable
-N_POPULATION = 100          # Immutable
-N_ROUNDS = 10000            # Immutable
+N_ACTS = 100                # Number of acts in the environment's repertoire
+N_POPULATION = 100          # Population size of a single deme
+N_ROUNDS = 10000            # Number of rounds in the simulation
 N_OBSERVE = 3               # Number of exploiters observed at a time; range [1-10]
 MODE_SPATIAL = False        # Whether demes are enabled
 MODE_CUMULATIVE = False     # Whether REFINE is available
 MODE_MODEL_BIAS = False     # Whether observe_who() can be specified
 P_COPYFAIL = 0.1            # Chance of observation failure; range [0.0-0.5]
+P_DEATH = 0.01              # Chance that an individual dies each round
+P_MUTATE = 1.0/50.0         # Chance that a competitive strategy will be adopted in offspring
+N_MIGRATE = 5               # Number of individuals migrating each round
 
 def randpayoff(distribution = 'default'):
     if (distribution == 'default'):
@@ -32,19 +35,13 @@ class Individual:
         self.historyPayoffs = []
         self.historyDemes = []
         self.deme = 0
+        self.lifetime_payoff = 0
         
         # We store a set of acts that the individual hasn't learned yet. The
         # innovate() function will random select an act from this set, learn
         # its payoff, and remove the act from the set.
         self.unknownActs = set(range(0, N_ACTS))
-    
-    def reproduce(self):
-        """
-        Returns True if this individual should reproduce, based on its
-        total lifetime payoff.
-        """
-        return False
-        
+            
         
 class Deme:
     
@@ -67,13 +64,19 @@ class Simulate:
                        mode_model_bias = MODE_MODEL_BIAS, 
                        N_observe = N_OBSERVE, 
                        P_copyFail = P_COPYFAIL, 
-                       N_rounds = N_ROUNDS):
+                       N_rounds = N_ROUNDS, 
+                       P_death = P_DEATH):
         self.mode_spatial = mode_spatial
         self.mode_cumulative = mode_cumulative
         self.mode_model_bias = mode_model_bias
         self.N_observe = N_observe
         self.P_copyFail = P_copyFail
         self.N_rounds = N_rounds
+        self.P_death = P_death
+        self.total_payoff = 0
+        
+        self.stat_deaths = 0
+        self.stat_births = 0
         
         if (self.mode_spatial):
             self.N_demes = 3
@@ -88,6 +91,28 @@ class Simulate:
     def modify_environment(self):
         for d in range(0, self.N_demes):
             self.demes[d].modify_environment(self.p_c)
+    
+    def death_birth(self):
+        for d in range(0, self.N_demes):
+            births = 0
+            deaths = []
+            for individual in self.demes[d].population:
+                if (random.random() <= self.P_death):
+                    deaths += [individual]
+                    self.stat_deaths += 1
+                elif ((self.total_payoff > 0) and
+                      (random.random() <= ((1.0*individual.lifetime_payoff/individual.roundsAlive) /
+                                          (1.0*self.total_payoff / self.round)))):
+                    births += 1
+                    self.stat_births += 1
+            
+            for individual in deaths:
+                self.demes[d].population.remove(individual)
+                    
+            for i in range(0, births):
+                self.demes[d].population += [Individual()]
+        
+                    
     
     def migrate(self):
         raise NotImplementedError()
@@ -179,6 +204,8 @@ class Simulate:
                             payoff += individual.refinements[act]
                         individual.historyActs += [act]
                         individual.historyPayoffs += [payoff]
+                        individual.lifetime_payoff += payoff
+                        self.total_payoff += payoff
                         exploiters += [individual]
                     
                 elif (move_act[0] == REFINE):
@@ -202,8 +229,6 @@ class Simulate:
                     
                 else:
                     raise AttributeError('Unknown action %d',  move_act[0])
-                if individual.reproduce():
-                    self.demes[d].population += Individual()
                     
                 i += 1  # Used to keep count of individuals for when using test commands
                 
@@ -257,6 +282,8 @@ class Simulate:
                         exploiter.timesCopied += 1
         
         self.modify_environment()
+        
+        self.death_birth()
         
         if (self.mode_spatial):
             self.migrate()
