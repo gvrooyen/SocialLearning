@@ -11,7 +11,7 @@ MODE_SPATIAL = False        # Whether demes are enabled
 MODE_CUMULATIVE = False     # Whether REFINE is available
 MODE_MODEL_BIAS = False     # Whether observe_who() can be specified
 P_COPYFAIL = 0.1            # Chance of observation failure; range [0.0-0.5]
-P_DEATH = 0.01              # Chance that an individual dies each round
+P_DEATH = 0.02              # Chance that an individual dies each round
 P_MUTATE = 1.0/50.0         # Chance that a competitive strategy will be adopted in offspring
 N_MIGRATE = 5               # Number of individuals migrating each round
 
@@ -65,7 +65,9 @@ class Simulate:
                        N_observe = N_OBSERVE, 
                        P_copyFail = P_COPYFAIL, 
                        N_rounds = N_ROUNDS, 
-                       P_death = P_DEATH):
+                       P_death = P_DEATH, 
+                       N_migrate = N_MIGRATE,
+                       birth_control = False):
         self.mode_spatial = mode_spatial
         self.mode_cumulative = mode_cumulative
         self.mode_model_bias = mode_model_bias
@@ -73,10 +75,12 @@ class Simulate:
         self.P_copyFail = P_copyFail
         self.N_rounds = N_rounds
         self.P_death = P_death
+        self.N_migrate = N_migrate
+        self.birth_control = birth_control  # Set to True to suppress new births in this simulation
         self.total_payoff = 0
         
-        self.stat_deaths = 0
-        self.stat_births = 0
+        self.stat_deaths = {}
+        self.stat_births = {}
         
         if (self.mode_spatial):
             self.N_demes = 3
@@ -93,18 +97,32 @@ class Simulate:
             self.demes[d].modify_environment(self.p_c)
     
     def death_birth(self):
+        self.stat_deaths[self.round] = 0    # Set the death count to zero for this round
+        self.stat_births[self.round] = 0    # Set the birth count to zero for this round
+        
+        # Firstly, we need to calculate all individuals' mean lifetime payoffs, as well as the sum of all
+        # these payoffs.
+        
+        MLP = {}
+        MLP_total = 0
+        
+        for d in range(0,  self.N_demes):
+            MLP[d] = {}
+            for individual in self.demes[d].population:
+                MLP[d][individual] = 1.0*individual.lifetime_payoff/individual.roundsAlive
+                MLP_total += MLP[d][individual]
+        
         for d in range(0, self.N_demes):
             births = 0
             deaths = []
             for individual in self.demes[d].population:
-                if (random.random() <= self.P_death):
+                if (random.random() < self.P_death):
                     deaths += [individual]
-                    self.stat_deaths += 1
-                elif ((self.total_payoff > 0) and
-                      (random.random() <= ((1.0*individual.lifetime_payoff/individual.roundsAlive) /
-                                          (1.0*self.total_payoff / self.round)))):
+                    self.stat_deaths[self.round] += 1
+                elif ((not self.birth_control) and (self.total_payoff > 0) and
+                      (random.random() <= (MLP[d][individual] / MLP_total) ) ):
                     births += 1
-                    self.stat_births += 1
+                    self.stat_births[self.round] += 1
             
             for individual in deaths:
                 self.demes[d].population.remove(individual)
@@ -115,7 +133,20 @@ class Simulate:
                     
     
     def migrate(self):
-        raise NotImplementedError()
+        
+        for d in range(0, self.N_demes):
+            
+            other_demes = range(0, self.N_demes)
+            other_demes.remove(d)
+            
+            # Randomly pick N_migrate individuals from the current deme, and move them to another random deme
+            migrants = random.sample(self.demes[d].population, 
+                                     min(self.N_migrate, len(self.demes[d].population)))
+            
+            for migrant in migrants:
+                self.demes[d].population.remove(migrant)
+                self.demes[random.choice(other_demes)].population += [migrant]
+            
     
     def step(self,  test_commands = None):
         """
@@ -268,6 +299,7 @@ class Simulate:
                             refinement = 0
                             
                         # The exact payoff isn't learned; rather, a sample from a poisson distribution
+                        
                         observer.historyActs += [act]
                         observer.historyPayoffs += [poisson.rvs(payoff + refinement)]
                         observer.repertoire[act] = observer.historyPayoffs[-1]

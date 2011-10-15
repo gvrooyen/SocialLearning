@@ -28,7 +28,9 @@ def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, hist
         if canPlayRefine:
             move = random.randint(-1, 2)
         else:
-            move = random.randint(-1, 1)
+            move = random.randint(-1, 2)
+            if (move == 2):
+                move = 1
         if (move == EXPLOIT) or (move == REFINE):
             act = random.randint(1, N_ACTS)
             return (move, act)
