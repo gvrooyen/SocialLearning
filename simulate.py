@@ -133,17 +133,25 @@ class Simulate:
                     
     
     def migrate(self):
+       
+        # The migrants must first be selected (N_migrate from each deme) and then be moved. If migrants are moved
+        # the moment that they are selected, there is a chance that immigrants from lower demes will repatriate
+        # by being reselected for migration in their new deme.
         
+        migrants = {}
+        
+        for d in range(0, self.N_demes):
+            # Randomly pick N_migrate individuals from the current deme. They will be moved to another random deme
+            # in the next loop.
+            migrants[d] = random.sample(self.demes[d].population, 
+                                        min(self.N_migrate, len(self.demes[d].population)))
+      
         for d in range(0, self.N_demes):
             
             other_demes = range(0, self.N_demes)
             other_demes.remove(d)
-            
-            # Randomly pick N_migrate individuals from the current deme, and move them to another random deme
-            migrants = random.sample(self.demes[d].population, 
-                                     min(self.N_migrate, len(self.demes[d].population)))
-            
-            for migrant in migrants:
+                        
+            for migrant in migrants[d]:
                 self.demes[d].population.remove(migrant)
                 self.demes[random.choice(other_demes)].population += [migrant]
             
