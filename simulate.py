@@ -180,7 +180,6 @@ class Simulate:
             
             for individual in self.demes[d].population:
                 individual.roundsAlive += 1
-                individual.historyDemes += [d]
                 
                 if (test_commands == None):
                 
@@ -204,10 +203,7 @@ class Simulate:
                         move_act = test_commands[d][i]
                     except IndexError:
                         move_act = (INNOVATE, )
-                        
-                individual.historyRounds += [individual.roundsAlive]
-                individual.historyMoves += [move_act[0]]
-
+                                        
                 if (move_act[0] == INNOVATE):
                     """
                     INNOVATE selects a new act at random from those acts not currently present in
@@ -219,8 +215,11 @@ class Simulate:
                     if (len(individual.unknownActs) > 0):
                         act = random.sample(individual.unknownActs, 1)[0]
                         individual.repertoire[act] = self.demes[d].acts[act]
+                        individual.historyRounds += [individual.roundsAlive]
+                        individual.historyMoves += [INNOVATE]                    
                         individual.historyActs += [act]
                         individual.historyPayoffs += [individual.repertoire[act]]
+                        individual.historyDemes += [d]
                         if self.mode_cumulative:
                             individual.refinements[act] = 0
                         individual.unknownActs.remove(act)
@@ -241,8 +240,11 @@ class Simulate:
                         payoff = self.demes[d].acts[act]
                         if individual.refinements.has_key(act):
                             payoff += individual.refinements[act]
+                        individual.historyRounds += [individual.roundsAlive]
+                        individual.historyMoves += [EXPLOIT]                    
                         individual.historyActs += [act]
                         individual.historyPayoffs += [payoff]
+                        individual.historyDemes += [d]
                         individual.lifetime_payoff += payoff
                         self.total_payoff += payoff
                         exploiters += [individual]
@@ -261,9 +263,13 @@ class Simulate:
                             individual.refinements[act] += 1
                         except KeyError:
                             individual.refinements[act] = 0
-                            
+                        
+                        # TODO: There's some repetition in history tracking -- refactor into Individual.recordHistory()
+                        individual.historyRounds += [individual.roundsAlive]
+                        individual.historyMoves += [REFINE]
                         individual.historyActs += [act]
                         individual.historyPayoffs += [self.demes[d].acts[act] + individual.refinements[act]]
+                        individual.historyDemes += [d]
                         individual.refinements[act] = individual.historyPayoffs[-1]
                     
                 else:
@@ -308,8 +314,11 @@ class Simulate:
                             
                         # The exact payoff isn't learned; rather, a sample from a poisson distribution
                         
+                        observer.historyRounds += [observer.roundsAlive]
+                        observer.historyMoves += [OBSERVE]
                         observer.historyActs += [act]
                         observer.historyPayoffs += [poisson.rvs(payoff + refinement)]
+                        observer.historyDemes += [d]
                         observer.repertoire[act] = observer.historyPayoffs[-1]
                         
                         # We rather use a set difference to remove the observed act from the list of
