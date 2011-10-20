@@ -14,10 +14,21 @@ P_COPYFAIL = 0.1            # Chance of observation failure; range [0.0-0.5]
 P_DEATH = 0.02              # Chance that an individual dies each round
 P_MUTATE = 1.0/50.0         # Chance that a competitive strategy will be adopted in offspring
 N_MIGRATE = 5               # Number of individuals migrating each round
+R_MAX = 100                 # Maximum refinement level
+MEAN_PAYOFF = 10            # Mean of the basic payoff distribution
 
 def randpayoff(distribution = 'default'):
     if (distribution == 'default'):
-        return int(random.expovariate(0.1)+1.0) 
+        return int(random.expovariate(1.0/MEAN_PAYOFF)+1.0)
+
+def copy_error(x):
+    # We make the assumption that the data point "0" can be copied (it often has to be), even though the Poisson
+    # distribution is not defined for this mean. However, the distribution is defined for very small means, in which
+    # it, in the limit, always returns zero.
+    if (x == 0):
+        return 0
+    else:
+        return poisson.rvs(x)
         
 class NotImplementedError(Exception):
     pass
@@ -95,6 +106,20 @@ class Simulate:
     def modify_environment(self):
         for d in range(0, self.N_demes):
             self.demes[d].modify_environment(self.p_c)
+    
+    def payoff_increment(self, r):
+        """
+        Calculate the increment in payoff due to the refinement r of an act
+        """
+        P_max = MEAN_PAYOFF * 50
+        
+        i = 0
+        for j in range(1, r+1):
+            i += 0.95 ** (r-j)
+        
+        i *= 0.05*P_max/(1.0 - (0.95 ** R_MAX))
+        
+        return int(round(i))
     
     def death_birth(self):
         self.stat_deaths[self.round] = 0    # Set the death count to zero for this round
@@ -239,7 +264,7 @@ class Simulate:
                         act = move_act[1]
                         payoff = self.demes[d].acts[act]
                         if individual.refinements.has_key(act):
-                            payoff += individual.refinements[act]
+                            payoff += self.payoff_increment(individual.refinements[act])
                         individual.historyRounds += [individual.roundsAlive]
                         individual.historyMoves += [EXPLOIT]                    
                         individual.historyActs += [act]
@@ -259,18 +284,14 @@ class Simulate:
                     elif (not individual.repertoire.has_key(act)):
                         raise KeyError("Attempt to refine an unknown act")
                     else:
-                        try:
-                            individual.refinements[act] += 1
-                        except KeyError:
-                            individual.refinements[act] = 0
+                        individual.refinements[act] += 1
                         
                         # TODO: There's some repetition in history tracking -- refactor into Individual.recordHistory()
                         individual.historyRounds += [individual.roundsAlive]
                         individual.historyMoves += [REFINE]
                         individual.historyActs += [act]
-                        individual.historyPayoffs += [self.demes[d].acts[act] + individual.refinements[act]]
+                        individual.historyPayoffs += [self.demes[d].acts[act] + self.payoff_increment(individual.refinements[act])]
                         individual.historyDemes += [d]
-                        individual.refinements[act] = individual.historyPayoffs[-1]
                     
                 else:
                     raise AttributeError('Unknown action %d',  move_act[0])
@@ -284,10 +305,10 @@ class Simulate:
                 i = 0
                 for exploiter in exploiters:
                     exploiterData += [(i, 
-                                       poisson.rvs(exploiter.roundsAlive),
-                                       poisson.rvs(sum(exploiter.historyPayoffs)),
-                                       poisson.rvs(exploiter.timesCopied), 
-                                       poisson.rvs(exploiter.N_offspring)
+                                       copy_error(exploiter.roundsAlive),
+                                       copy_error(sum(exploiter.historyPayoffs)),
+                                       copy_error(exploiter.timesCopied), 
+                                       copy_error(exploiter.N_offspring)
                                      )]
                     i += 1
             
@@ -296,7 +317,8 @@ class Simulate:
                 if self.mode_model_bias:
                     # Ask the individual whom he wants to observe
                     preferred_teachers = agent.observe_who(exploiterData)
-                    exploiter_sample = preferred_teachers[0:min(self.N_observe, len(preferred_teachers))]
+                    exploiter_sample = [exploiters[preferred_teachers[i][0]]
+                                        for i in range(0, min(self.N_observe, len(preferred_teachers)))]
                 else:
                     # Default behaviour: pick N_OBSERVE exploiters at random (if there are that many)
                     exploiter_sample = random.sample(exploiters, min(self.N_observe, len(exploiters)))
@@ -317,7 +339,7 @@ class Simulate:
                         observer.historyRounds += [observer.roundsAlive]
                         observer.historyMoves += [OBSERVE]
                         observer.historyActs += [act]
-                        observer.historyPayoffs += [poisson.rvs(payoff + refinement)]
+                        observer.historyPayoffs += [copy_error(payoff + self.payoff_increment(refinement))]
                         observer.historyDemes += [d]
                         observer.repertoire[act] = observer.historyPayoffs[-1]
                         

@@ -44,7 +44,13 @@ def observe_who(exploiterData):
     'Data given for each agent are (index in this list,age,total accrued payoff,number of times copied,number of offpsring)'
     'All values except index have error applied'
     if (OBSERVE_STRATEGY == 'random'):
-        return random.shuffle(exploiterData) #return the model list randomly shuffled, leave as is if not engaging with model bias
+        # Return the model list randomly shuffled. Leave as is if not engaging with model bias
+        random.shuffle(exploiterData)
+        return exploiterData
+    elif (OBSERVE_STRATEGY == 'unittest'):
+        # Return the model list shuffled with a fixed random number seed. Useful for unit tests.
+        random.shuffle(exploiterData, lambda: 0)
+        return exploiterData
     else:
         raise AttributeError("Unknown observation strategy '%s'" % OBSERVE_STRATEGY)
 
