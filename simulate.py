@@ -98,6 +98,8 @@ class Simulate:
         self.stat_deaths = {}
         self.stat_births = {}
         self.stat_population = {}
+        self.stat_total_OBSERVEs = 0
+        self.stat_failed_copies = 0
         
         if (self.mode_spatial):
             self.N_demes = 3
@@ -332,6 +334,7 @@ class Simulate:
                     exploiter_sample = random.sample(exploiters, min(self.N_observe, len(exploiters)))
                 for exploiter in exploiter_sample:
                     # There is a random chance that we simply fail to learn by observing
+                    self.stat_total_OBSERVEs += 1
                     if (random.random() > self.P_copyFail):
                         # Pick out the exploiter's last act and associated payoff
                         act = exploiter.historyActs[-1]
@@ -359,6 +362,9 @@ class Simulate:
                         observer.unknownActs -= set([act])
                         
                         exploiter.timesCopied += 1
+                    else:
+                        # Copy failed; keep track of the stats
+                        self.stat_failed_copies += 1
         
         self.modify_environment()
         
