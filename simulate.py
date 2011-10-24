@@ -10,6 +10,7 @@ N_OBSERVE = 3               # Number of exploiters observed at a time; range [1-
 MODE_SPATIAL = False        # Whether demes are enabled
 MODE_CUMULATIVE = False     # Whether REFINE is available
 MODE_MODEL_BIAS = False     # Whether observe_who() can be specified
+P_C = 0.001                 # Probability that they payoff of an act will change in a given round
 P_COPYFAIL = 0.1            # Chance of observation failure; range [0.0-0.5]
 P_DEATH = 0.02              # Chance that an individual dies each round
 P_MUTATE = 1.0/50.0         # Chance that a competitive strategy will be adopted in offspring
@@ -61,9 +62,9 @@ class Deme:
         self.population = [Individual() for x in range(0,  N_POPULATION)]
         self.stat_act_updates = 0
 
-    def modify_environment(self, p_c = P_COPYFAIL):
+    def modify_environment(self, P_c = P_C):
         for i in range(0, N_ACTS):
-            if (random.random() <= p_c):
+            if (random.random() <= P_c):
                 self.acts[i] = randpayoff()
                 self.stat_act_updates += 1  # Keep track of act update statistics
 
@@ -74,24 +75,29 @@ class Simulate:
                        mode_cumulative = MODE_CUMULATIVE,
                        mode_model_bias = MODE_MODEL_BIAS, 
                        N_observe = N_OBSERVE, 
+                       P_c = P_C,
                        P_copyFail = P_COPYFAIL, 
                        N_rounds = N_ROUNDS, 
                        P_death = P_DEATH, 
                        N_migrate = N_MIGRATE,
+                       r_max = R_MAX,
                        birth_control = False):
         self.mode_spatial = mode_spatial
         self.mode_cumulative = mode_cumulative
         self.mode_model_bias = mode_model_bias
         self.N_observe = N_observe
+        self.P_c = P_c
         self.P_copyFail = P_copyFail
         self.N_rounds = N_rounds
         self.P_death = P_death
         self.N_migrate = N_migrate
         self.birth_control = birth_control  # Set to True to suppress new births in this simulation
         self.total_payoff = 0
+        self.r_max = r_max
         
         self.stat_deaths = {}
         self.stat_births = {}
+        self.stat_population = {}
         
         if (self.mode_spatial):
             self.N_demes = 3
@@ -101,11 +107,10 @@ class Simulate:
         self.demes = [Deme() for x in range(0, self.N_demes)]
         
         self.round = 0
-        self.p_c = 0.001    # Probability that the basic payoff of an act will change in a single simulation round
         
     def modify_environment(self):
         for d in range(0, self.N_demes):
-            self.demes[d].modify_environment(self.p_c)
+            self.demes[d].modify_environment(self.P_c)
     
     def payoff_increment(self, r):
         """
@@ -117,7 +122,7 @@ class Simulate:
         for j in range(1, r+1):
             i += 0.95 ** (r-j)
         
-        i *= 0.05*P_max/(1.0 - (0.95 ** R_MAX))
+        i *= 0.05*P_max/(1.0 - (0.95 ** self.r_max))
         
         return int(round(i))
     
@@ -196,6 +201,8 @@ class Simulate:
         
         """
         self.round += 1
+        
+        self.stat_population[self.round] = sum([len(d.population) for d in self.demes])
         
         for d in range(0,  self.N_demes):
             
@@ -284,7 +291,8 @@ class Simulate:
                     elif (not individual.repertoire.has_key(act)):
                         raise KeyError("Attempt to refine an unknown act")
                     else:
-                        individual.refinements[act] += 1
+                        if individual.refinements[act] <= R_MAX:
+                            individual.refinements[act] += 1
                         
                         # TODO: There's some repetition in history tracking -- refactor into Individual.recordHistory()
                         individual.historyRounds += [individual.roundsAlive]

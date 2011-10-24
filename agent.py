@@ -31,9 +31,15 @@ def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, hist
             move = random.randint(-1, 2)
             if (move == 2):
                 move = 1
-        if (move == EXPLOIT) or (move == REFINE):
+        if (move == EXPLOIT):
             act = random.randint(1, N_ACTS)
             return (move, act)
+        if (move == REFINE):
+            if (len(repertoire) > 0):
+                act = random.choice(repertoire.keys())
+                return (move, act)
+            else:
+                return (INNOVATE, )
         else:
             return (move, )
     else:
