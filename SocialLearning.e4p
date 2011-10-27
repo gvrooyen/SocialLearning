@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project SocialLearning -->
-<!-- Saved: 2011-10-08, 11:44:20 -->
+<!-- Saved: 2011-10-25, 22:00:12 -->
 <!-- Copyright (C) 2011 G-J van Rooyen, gvrooyen@sun.ac.za -->
 <Project version="4.6">
   <Language>en</Language>
@@ -17,6 +17,7 @@
     <Source>moves.py</Source>
     <Source>simulate.py</Source>
     <Source>test.py</Source>
+    <Source>fitness.py</Source>
   </Sources>
   <Forms>
   </Forms>
@@ -28,6 +29,7 @@
   </Interfaces>
   <Others>
     <Other>Social_Learning_Strategies_Tournament_II_Rules.pdf</Other>
+    <Other>tasks.cfg</Other>
   </Others>
   <MainScript>test.py</MainScript>
   <Vcs>

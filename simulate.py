@@ -1,7 +1,11 @@
 from moves import *
 import agent
+import sys
+import copy
 import random
+import traceback
 from scipy.stats import poisson
+from math import *
 
 N_ACTS = 100                # Number of acts in the environment's repertoire
 N_POPULATION = 100          # Population size of a single deme
@@ -10,7 +14,7 @@ N_OBSERVE = 3               # Number of exploiters observed at a time; range [1-
 MODE_SPATIAL = False        # Whether demes are enabled
 MODE_CUMULATIVE = False     # Whether REFINE is available
 MODE_MODEL_BIAS = False     # Whether observe_who() can be specified
-P_C = 0.001                 # Probability that they payoff of an act will change in a given round
+P_C = 0.001                 # Probability that the payoff of an act will change in a given round
 P_COPYFAIL = 0.1            # Chance of observation failure; range [0.0-0.5]
 P_DEATH = 0.02              # Chance that an individual dies each round
 P_MUTATE = 1.0/50.0         # Chance that a competitive strategy will be adopted in offspring
@@ -18,18 +22,78 @@ N_MIGRATE = 5               # Number of individuals migrating each round
 R_MAX = 100                 # Maximum refinement level
 MEAN_PAYOFF = 10            # Mean of the basic payoff distribution
 
-def randpayoff(distribution = 'default'):
-    if (distribution == 'default'):
-        return int(random.expovariate(1.0/MEAN_PAYOFF)+1.0)
-
-def copy_error(x):
+def old_copy_error(x):
     # We make the assumption that the data point "0" can be copied (it often has to be), even though the Poisson
     # distribution is not defined for this mean. However, the distribution is defined for very small means, in which
     # it, in the limit, always returns zero.
-    if (x == 0):
-        return 0
-    else:
+    #
+    # This is the old version of the function, which uses the SciPy implementation. This version is not thread-safe,
+    # and cannot be used for repeatable runs in a multiprocessed simulation.
+    try:
         return poisson.rvs(x)
+    except ValueError:
+        return 0
+
+def gammaln(xx):
+    """
+    Returns the natural logarithm of the gamma function of the argument.
+    The code used here is adapted from Numerical Recipes in C [gammln()]
+    """
+    
+    coef = [76.18009172947146,
+            -86.50532032941677,
+            24.01409824083091,
+            -1.231739572450155,
+            0.1208650973866179e-2,
+            -0.5395239384953e-5]
+    y = xx
+    x = xx
+    tmp = x + 5.5
+    tmp -= (x+0.5) * log(tmp)
+    ser = 1.000000000190015
+    for j in range(0,6):
+        y += 1.0
+        ser += coef[j]/y
+    return -tmp + log(2.5066282746310005*ser/x)
+    
+
+def copy_error(xm, func_random):
+    """
+    Returns a sample from a Poisson distribution with a mean of xm.
+    The code used here is adapted from Numerical Recipes in C [poidev()]
+    """
+    
+    oldm = -1.0
+    
+    if (xm < 12.0):
+        if (xm != oldm):
+            oldm = xm
+            g = exp(-xm)
+        em = -1
+        t = 1.0
+        while True:
+            em += 1.0
+            t *= func_random()
+            if (t <= g):
+                break
+    else:
+        if (xm != oldm):
+            oldm = xm
+            sq = sqrt(2.0*xm)
+            alxm = log(xm)
+            g = xm * alxm - gammaln(xm+1.0)
+        while True:
+            while True:
+                y = tan(pi*func_random())
+                em = sq * y + xm
+                if (em >= 0.0):
+                    break
+            em = floor(em)
+            t = 0.9 * (1.0+y*y) * exp(em*alxm-gammaln(em+1.0)-g)
+            if (func_random() <= t):
+                break
+    return em;
+    
         
 class NotImplementedError(Exception):
     pass
@@ -57,19 +121,31 @@ class Individual:
         
 class Deme:
     
-    def __init__(self):
-        self.acts = [randpayoff() for x in range(0, N_ACTS)]
+    def randpayoff(self, distribution = 'default'):
+        if (distribution == 'default'):
+            return int(self.random.expovariate(1.0/MEAN_PAYOFF)+1.0)
+
+    def __init__(self, parent):
+        # Use the same random number object as the parent to ensure repeatability
+        self.random = parent.random
+        
+        x = self.random.expovariate(0.0001)
+
+        self.acts = [self.randpayoff() for x in range(0, N_ACTS)]
         self.population = [Individual() for x in range(0,  N_POPULATION)]
         self.stat_act_updates = 0
-
+        
     def modify_environment(self, P_c = P_C):
         for i in range(0, N_ACTS):
-            if (random.random() <= P_c):
-                self.acts[i] = randpayoff()
+            if (self.random.random() <= P_c):
+                self.acts[i] = self.randpayoff()
                 self.stat_act_updates += 1  # Keep track of act update statistics
 
 
 class Simulate:
+    
+    # TODO: Add a Random() object, so that random state isn't shared between Simulate() instances.
+    #       This will make tests repeatable during multiprocessed simulation runs.
     
     def __init__(self, mode_spatial = MODE_SPATIAL, 
                        mode_cumulative = MODE_CUMULATIVE,
@@ -81,7 +157,8 @@ class Simulate:
                        P_death = P_DEATH, 
                        N_migrate = N_MIGRATE,
                        r_max = R_MAX,
-                       birth_control = False):
+                       birth_control = False,
+                       seed = None):
         self.mode_spatial = mode_spatial
         self.mode_cumulative = mode_cumulative
         self.mode_model_bias = mode_model_bias
@@ -95,18 +172,22 @@ class Simulate:
         self.total_payoff = 0
         self.r_max = r_max
         
+        self.random = random.Random(seed)
+        
         self.stat_deaths = {}
         self.stat_births = {}
         self.stat_population = {}
         self.stat_total_OBSERVEs = 0
         self.stat_failed_copies = 0
         
+        self.exception = None
+        
         if (self.mode_spatial):
             self.N_demes = 3
         else:
             self.N_demes = 1
         
-        self.demes = [Deme() for x in range(0, self.N_demes)]
+        self.demes = [Deme(self) for x in range(0, self.N_demes)]
         
         self.round = 0
         
@@ -148,11 +229,11 @@ class Simulate:
             births = 0
             deaths = []
             for individual in self.demes[d].population:
-                if (random.random() < self.P_death):
+                if (self.random.random() < self.P_death):
                     deaths += [individual]
                     self.stat_deaths[self.round] += 1
-                elif ((not self.birth_control) and (self.total_payoff > 0) and
-                      (random.random() <= (MLP[d][individual] / MLP_total) ) ):
+                elif ((not self.birth_control) and (MLP_total > 0) and
+                      (self.random.random() <= (MLP[d][individual] / MLP_total) ) ):
                     births += 1
                     self.stat_births[self.round] += 1
             
@@ -175,7 +256,7 @@ class Simulate:
         for d in range(0, self.N_demes):
             # Randomly pick N_migrate individuals from the current deme. They will be moved to another random deme
             # in the next loop.
-            migrants[d] = random.sample(self.demes[d].population, 
+            migrants[d] = self.random.sample(self.demes[d].population, 
                                         min(self.N_migrate, len(self.demes[d].population)))
       
         for d in range(0, self.N_demes):
@@ -185,7 +266,7 @@ class Simulate:
                         
             for migrant in migrants[d]:
                 self.demes[d].population.remove(migrant)
-                self.demes[random.choice(other_demes)].population += [migrant]
+                self.demes[self.random.choice(other_demes)].population += [migrant]
             
     
     def step(self,  test_commands = None):
@@ -205,6 +286,10 @@ class Simulate:
         self.round += 1
         
         self.stat_population[self.round] = sum([len(d.population) for d in self.demes])
+        
+        # # Uncomment To test fitness.py's error handling and logging
+        # if (self.random.random() < 0.0001):
+        #    raise ValueError("This is a random error!")
         
         for d in range(0,  self.N_demes):
             
@@ -246,17 +331,24 @@ class Simulate:
                     has the 100 possible acts in its repertoire, it gains no new act from playing
                     INNOVATE. In the cumulative case, the new act is acquired with refinement level 0.
                     """
+                    
+                    individual.historyRounds += [individual.roundsAlive]
+                    individual.historyMoves += [INNOVATE]                                        
+                    individual.historyDemes += [d]
+                    
                     if (len(individual.unknownActs) > 0):
-                        act = random.sample(individual.unknownActs, 1)[0]
+                        act = self.random.sample(individual.unknownActs, 1)[0]
                         individual.repertoire[act] = self.demes[d].acts[act]
-                        individual.historyRounds += [individual.roundsAlive]
-                        individual.historyMoves += [INNOVATE]                    
                         individual.historyActs += [act]
                         individual.historyPayoffs += [individual.repertoire[act]]
-                        individual.historyDemes += [d]
                         if self.mode_cumulative:
                             individual.refinements[act] = 0
                         individual.unknownActs.remove(act)
+                    else:
+                        # There's nothing left to learn -- return -1
+                        individual.historyActs += [-1]
+                        individual.historyPayoffs += [-1]
+                        
                         
                 elif (move_act[0] == OBSERVE):
                     # We can't immediately resolve OBSERVE, because we first need to run through
@@ -300,7 +392,8 @@ class Simulate:
                         individual.historyRounds += [individual.roundsAlive]
                         individual.historyMoves += [REFINE]
                         individual.historyActs += [act]
-                        individual.historyPayoffs += [self.demes[d].acts[act] + self.payoff_increment(individual.refinements[act])]
+                        individual.historyPayoffs += [self.demes[d].acts[act] 
+                                                      + self.payoff_increment(individual.refinements[act])]
                         individual.historyDemes += [d]
                     
                 else:
@@ -315,15 +408,21 @@ class Simulate:
                 i = 0
                 for exploiter in exploiters:
                     exploiterData += [(i, 
-                                       copy_error(exploiter.roundsAlive),
-                                       copy_error(sum(exploiter.historyPayoffs)),
-                                       copy_error(exploiter.timesCopied), 
-                                       copy_error(exploiter.N_offspring)
+                                       copy_error(exploiter.roundsAlive, self.random.random),
+                                       copy_error(sum(exploiter.historyPayoffs), self.random.random),
+                                       copy_error(exploiter.timesCopied, self.random.random), 
+                                       copy_error(exploiter.N_offspring, self.random.random)
                                      )]
                     i += 1
             
             # Next, resolve all observations in this deme
             for observer in observers:
+                
+                # FIXME: The individual's history should always contain exactly N_observe entries!
+                #        If fewer than N_observe models were available, '-1' should be returned.
+                
+                N_succeeded = 0
+                
                 if self.mode_model_bias:
                     # Ask the individual whom he wants to observe
                     preferred_teachers = agent.observe_who(exploiterData)
@@ -331,14 +430,15 @@ class Simulate:
                                         for i in range(0, min(self.N_observe, len(preferred_teachers)))]
                 else:
                     # Default behaviour: pick N_OBSERVE exploiters at random (if there are that many)
-                    exploiter_sample = random.sample(exploiters, min(self.N_observe, len(exploiters)))
+                    exploiter_sample = self.random.sample(exploiters, min(self.N_observe, len(exploiters)))
                 for exploiter in exploiter_sample:
                     # There is a random chance that we simply fail to learn by observing
                     self.stat_total_OBSERVEs += 1
-                    if (random.random() > self.P_copyFail):
+                    if (self.random.random() > self.P_copyFail):
                         # Pick out the exploiter's last act and associated payoff
                         act = exploiter.historyActs[-1]
                         payoff = exploiter.historyPayoffs[-1]
+                        N_succeeded += 1
                         if self.mode_cumulative and (exploiter.refinements.has_key(act)):
                             refinement = exploiter.refinements[act]
                             observer.refinements[act] = refinement
@@ -350,7 +450,8 @@ class Simulate:
                         observer.historyRounds += [observer.roundsAlive]
                         observer.historyMoves += [OBSERVE]
                         observer.historyActs += [act]
-                        observer.historyPayoffs += [copy_error(payoff + self.payoff_increment(refinement))]
+                        observer.historyPayoffs += [copy_error(payoff + self.payoff_increment(refinement), 
+                                                               self.random.random)]
                         observer.historyDemes += [d]
                         observer.repertoire[act] = observer.historyPayoffs[-1]
                         
@@ -365,6 +466,14 @@ class Simulate:
                     else:
                         # Copy failed; keep track of the stats
                         self.stat_failed_copies += 1
+                        
+                for i in range(0, self.N_observe - N_succeeded):
+                        observer.historyRounds += [observer.roundsAlive]
+                        observer.historyMoves += [OBSERVE]
+                        observer.historyActs += [-1]
+                        observer.historyPayoffs += [-1]
+                        observer.historyDemes += [d]
+                    
         
         self.modify_environment()
         
@@ -373,6 +482,14 @@ class Simulate:
         if (self.mode_spatial):
             self.migrate()
     
-    def run(self):
-        for i in range(0, self.N_rounds):
-            self.step()
+    def run(self, silent_fail = False):
+        try:
+            for i in range(0, self.N_rounds):
+                self.step()
+        except:
+            # To make run() multiprocessing-safe, it should raise no exceptions, but rather fail silently,
+            # and just leave the exception information inside the object itself. To make this possible, any exception is
+            # caught here, but only re-raised if we're not in "silent_fail" (multiprocessor-safe) mode.
+            self.exception = traceback.format_exc()
+            if not silent_fail:
+                raise

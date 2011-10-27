@@ -63,3 +63,14 @@ def observe_who(exploiterData):
 #=------------------------------------------------------------------------------
 # SPECIALISED STRATEGIES
 #=------------------------------------------------------------------------------
+
+def move_LearnTillYouKnowSomethingValuable(roundsAlive, repertoire, historyRounds, historyMoves, historyActs,
+        historyPayoffs, historyDemes, currentDeme, canChooseModel, canPlayRefine, multipleDemes):
+    
+    if (roundsAlive == 1):
+        # Look around to see if we're pioneers
+        return (OBSERVE, )
+    else:
+        return (INNOVATE, )
+
+        
