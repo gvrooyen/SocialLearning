@@ -4,12 +4,14 @@ from moves import * #bring in standard names for moves
 
 #imports standard random number and mathematics modules; other base modules (v2.7)
 # can be imported here if needed
-import random, math 
+import math 
 
 MOVE_STRATEGY = 'random'
 OBSERVE_STRATEGY = 'random'
 
 N_ACTS = 100
+
+random = object()
 
 def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, historyPayoffs, historyDemes, currentDeme,
          canChooseModel, canPlayRefine, multipleDemes):

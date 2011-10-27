@@ -40,8 +40,6 @@ def gammaln(xx):
     The code used here is adapted from Numerical Recipes in C [gammln()]
     """
     
-    # TODO: Add a unit test for the gammaln function, that compares it to the scipy implementation
-    
     coef = [76.18009172947146,
             -86.50532032941677,
             24.01409824083091,
@@ -65,9 +63,10 @@ def copy_error(xm, func_random):
     The code used here is adapted from Numerical Recipes in C [poidev()]
     """
     
-    # TODO: Add a unit test for copy_error, that compares a process's histogram with that of the scipy implementation
-    
     oldm = -1.0
+    
+    if (xm < 0):
+        raise ValueError()
     
     if (xm < 12.0):
         if (xm != oldm):
@@ -174,6 +173,7 @@ class Simulate:
         self.r_max = r_max
         
         self.random = random.Random(seed)   # TODO: Add a unit test that verifies repeatability of simulation runs
+        agent.random = self.random
         
         self.stat_deaths = {}
         self.stat_births = {}
@@ -410,7 +410,7 @@ class Simulate:
                 for exploiter in exploiters:
                     exploiterData += [(i, 
                                        copy_error(exploiter.roundsAlive, self.random.random),
-                                       copy_error(sum(exploiter.historyPayoffs), self.random.random),
+                                       copy_error(exploiter.lifetime_payoff, self.random.random),
                                        copy_error(exploiter.timesCopied, self.random.random), 
                                        copy_error(exploiter.N_offspring, self.random.random)
                                      )]
