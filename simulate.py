@@ -22,7 +22,7 @@ N_MIGRATE = 5               # Number of individuals migrating each round
 R_MAX = 100                 # Maximum refinement level
 MEAN_PAYOFF = 10            # Mean of the basic payoff distribution
 
-def old_copy_error(x):
+def scipy_copy_error(x):
     # We make the assumption that the data point "0" can be copied (it often has to be), even though the Poisson
     # distribution is not defined for this mean. However, the distribution is defined for very small means, in which
     # it, in the limit, always returns zero.
@@ -39,6 +39,8 @@ def gammaln(xx):
     Returns the natural logarithm of the gamma function of the argument.
     The code used here is adapted from Numerical Recipes in C [gammln()]
     """
+    
+    # TODO: Add a unit test for the gammaln function, that compares it to the scipy implementation
     
     coef = [76.18009172947146,
             -86.50532032941677,
@@ -62,6 +64,8 @@ def copy_error(xm, func_random):
     Returns a sample from a Poisson distribution with a mean of xm.
     The code used here is adapted from Numerical Recipes in C [poidev()]
     """
+    
+    # TODO: Add a unit test for copy_error, that compares a process's histogram with that of the scipy implementation
     
     oldm = -1.0
     
@@ -144,9 +148,6 @@ class Deme:
 
 class Simulate:
     
-    # TODO: Add a Random() object, so that random state isn't shared between Simulate() instances.
-    #       This will make tests repeatable during multiprocessed simulation runs.
-    
     def __init__(self, mode_spatial = MODE_SPATIAL, 
                        mode_cumulative = MODE_CUMULATIVE,
                        mode_model_bias = MODE_MODEL_BIAS, 
@@ -172,7 +173,7 @@ class Simulate:
         self.total_payoff = 0
         self.r_max = r_max
         
-        self.random = random.Random(seed)
+        self.random = random.Random(seed)   # TODO: Add a unit test that verifies repeatability of simulation runs
         
         self.stat_deaths = {}
         self.stat_births = {}
@@ -417,9 +418,6 @@ class Simulate:
             
             # Next, resolve all observations in this deme
             for observer in observers:
-                
-                # FIXME: The individual's history should always contain exactly N_observe entries!
-                #        If fewer than N_observe models were available, '-1' should be returned.
                 
                 N_succeeded = 0
                 
