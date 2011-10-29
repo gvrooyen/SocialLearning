@@ -25,27 +25,9 @@ def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, hist
     This function MUST return a tuple in the form (MOVE,ACT) if MOVE is EXPLOIT or
     REFINE, or (MOVE,) if MOVE is INNOVATE or OBSERVE.
     """
-    
-    if (MOVE_STRATEGY == 'random'):
-        if canPlayRefine:
-            move = random.randint(-1, 2)
-        else:
-            move = random.randint(-1, 2)
-            if (move == 2):
-                move = 1
-        if (move == EXPLOIT):
-            act = random.randint(1, N_ACTS)
-            return (move, act)
-        if (move == REFINE):
-            if (len(repertoire) > 0):
-                act = random.choice(repertoire.keys())
-                return (move, act)
-            else:
-                return (INNOVATE, )
-        else:
-            return (move, )
-    else:
-        raise AttributeError("Unknown move strategy '%s'" % MOVE_STRATEGY)
+
+    return 0
+
     
 def observe_who(exploiterData):
     'This function MUST return the given list of tuples, exploiterData, sorted by preference for copying.'

@@ -172,7 +172,7 @@ class Simulate:
         self.total_payoff = 0
         self.r_max = r_max
         
-        self.random = random.Random(seed)   # TODO: Add a unit test that verifies repeatability of simulation runs
+        self.random = random.Random(seed)
         agent.random = self.random
         
         self.stat_deaths = {}

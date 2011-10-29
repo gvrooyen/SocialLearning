@@ -6,8 +6,9 @@ import random
 import cPickle as pickle
 from math import *
 import scipy.special
+import paramest
 
-quickTest = False   # Used to skip unit tests that are known to be stable
+quickTest = True   # Used to skip unit tests that are known to be stable
 
 TOLERANCE = 0.08    # Precision required for testing whether statistical parameters were satisfied
 
@@ -892,6 +893,38 @@ class TestRepeatability(unittest.TestCase):
             self.assertListEqual(pop1[i].historyPayoffs, pop2[i].historyPayoffs)
             self.assertListEqual(pop1[i].historyDemes, pop2[i].historyDemes)
 
+
+class TestEstimation(unittest.TestCase):
+    
+    def setUp(self):
+        # Create a new simulation with a range of default parameters
+        
+        self.simulation = simulate.Simulate(N_rounds = 100, 
+                                            mode_model_bias = True,
+                                            mode_cumulative = True,
+                                            mode_spatial = True,
+                                            N_observe = 5)
+        agent.OBSERVE_STRATEGY = 'unittest'
+        
+        self.simulation.run()
+        
+    def test_estimation(self):
+        
+        estimates = []
+        
+        for deme in self.simulation.demes:
+            for individual in deme.population:
+                estimates.append(paramest.Hat(individual.roundsAlive, individual.repertoire, individual.historyRounds,
+                                              individual.historyMoves, individual.historyActs,
+                                              individual.historyPayoffs, individual.historyDemes, individual.deme,
+                                              self.simulation.mode_model_bias, self.simulation.mode_cumulative,
+                                              self.simulation.mode_spatial))
+        
+        N_observes = [e.N_observe for e in estimates]
+        hat_N_observe = 1.0*sum(N_observes)/len(N_observes)
+        
+        self.assertLess(abs(1.0*hat_N_observe/self.simulation.N_observe - 1.0), 0.05)
+    
 
 def tearDownModule():
     print("\n\nSTATISTICS")
