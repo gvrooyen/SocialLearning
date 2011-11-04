@@ -908,7 +908,30 @@ class TestEstimation(unittest.TestCase):
         
         self.simulation.run()
         
-    def test_estimation(self):
+        
+    def test_estimation_P_c(self):
+        # Test whether the estimation logic can determine P_c (probability of payoff change) correctly.
+        
+        # Firstly, do a canned test where payoffs change exactly every 5th round (P_c = 0.2)
+        
+        repertoire = {1: 33}
+
+        historyMoves = [INNOVATE] + [EXPLOIT]*19
+        historyPayoffs = [50]*5 + [25]*5 + [75]*5 + [33]*5
+        roundsAlive = len(historyMoves)
+        historyRounds = range(1, roundsAlive+1)
+        historyActs = [1]*roundsAlive
+
+        currentDeme = 0
+        historyDemes = [currentDeme] * roundsAlive
+        
+        hat = paramest.Hat(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, historyPayoffs,
+                           historyDemes, currentDeme, False, False, False)
+        
+        self.assertEqual(hat.P_c(), 0.2)
+        
+        
+    def test_estimation_run(self):
         
         estimates = []
         
@@ -920,7 +943,7 @@ class TestEstimation(unittest.TestCase):
                                               self.simulation.mode_model_bias, self.simulation.mode_cumulative,
                                               self.simulation.mode_spatial))
         
-        N_observes = [e.N_observe for e in estimates]
+        N_observes = [e.N_observe() for e in estimates]
         hat_N_observe = 1.0*sum(N_observes)/len(N_observes)
         
         self.assertLess(abs(1.0*hat_N_observe/self.simulation.N_observe - 1.0), 0.05)
