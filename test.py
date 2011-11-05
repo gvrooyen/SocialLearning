@@ -899,17 +899,32 @@ class TestEstimation(unittest.TestCase):
     def setUp(self):
         # Create a new simulation with a range of default parameters
         
+        simulate.N_POPULATION = 2000     # To reduce variability in estimation
+
         self.simulation = simulate.Simulate(N_rounds = 100, 
                                             mode_model_bias = True,
                                             mode_cumulative = True,
-                                            mode_spatial = True,
-                                            N_observe = 5)
+                                            mode_spatial = False,
+                                            
+                                            # Deaths and births introduce randomness that add noise to the estimation
+                                            # algorithms, without helping us to assess their correctness.
+                                            P_death = -1.0,
+                                            birth_control = True,
+                                            
+                                            N_observe = 5,
+                                            
+                                            # We test P_c at a bias point where we'd like the estimate to be accurate.
+                                            # At very low levels (e.g. 0.002, where most individuals will never observe
+                                            # change) we don't really care that much. This estimate becomes useful if
+                                            # individuals are likely to see multiple changes of acts in their repertoire
+                                            # during their lifetime
+                                            P_c = 0.1,
+                                            
+                                            seed = 'test_Estimation_lambda')
         agent.OBSERVE_STRATEGY = 'unittest'
         
-        self.simulation.run()
         
-        
-    def test_estimation_P_c(self):
+    def test_estimation_P_c_constant(self):
         # Test whether the estimation logic can determine P_c (probability of payoff change) correctly.
         
         # Firstly, do a canned test where payoffs change exactly every 5th round (P_c = 0.2)
@@ -929,9 +944,43 @@ class TestEstimation(unittest.TestCase):
                            historyDemes, currentDeme, False, False, False)
         
         self.assertEqual(hat.P_c(), 0.2)
+
+
+    def test_estimation_P_c_stochastic(self):
         
+        def agent_move_learn_then_burn(roundsAlive, repertoire, historyRounds, historyMoves, historyActs,
+                                       historyPayoffs, historyDemes, currentDeme, canChooseModel, canPlayRefine,
+                                       multipleDemes):
+            if roundsAlive <= 3:
+                return (INNOVATE, )
+            else:
+                return (EXPLOIT, repertoire.keys()[ (historyPayoffs[0] * roundsAlive * 7) % 3])
         
+        self.simulation.agent_move = agent_move_learn_then_burn
+        
+        self.simulation.run()
+        
+        estimates = []
+        
+        for deme in self.simulation.demes:
+            for individual in deme.population:
+                estimates.append(paramest.Hat(individual.roundsAlive, individual.repertoire, individual.historyRounds,
+                                              individual.historyMoves, individual.historyActs,
+                                              individual.historyPayoffs, individual.historyDemes, individual.deme,
+                                              self.simulation.mode_model_bias, self.simulation.mode_cumulative,
+                                              self.simulation.mode_spatial))
+                                              
+        P_c_estimates = [e.P_c() for e in estimates]
+        hat_P_c = 1.0*sum(P_c_estimates)/len(P_c_estimates)
+        
+        # This is a very rough estimate -- we allow it a bit of latitude
+        self.assertLess(abs(1.0*hat_P_c/self.simulation.P_c - 1.0), 0.05,
+                        "Error: %.2f%%" % (100*(hat_P_c/self.simulation.P_c - 1.0)))
+        
+
     def test_estimation_run(self):
+        
+        self.simulation.run()
         
         estimates = []
         
@@ -946,7 +995,7 @@ class TestEstimation(unittest.TestCase):
         N_observes = [e.N_observe() for e in estimates]
         hat_N_observe = 1.0*sum(N_observes)/len(N_observes)
         
-        self.assertLess(abs(1.0*hat_N_observe/self.simulation.N_observe - 1.0), 0.05)
+        self.assertLess(abs(1.0*hat_N_observe/self.simulation.N_observe - 1.0), 0.075)
     
 
 def tearDownModule():
@@ -958,7 +1007,7 @@ def tearDownModule():
 
 if __name__ == '__main__':
     stats = {}
-    SEED = 'zeta'
+    SEED = 'upsilon'
     random.seed(SEED)
     print("Running unit tests... (random seed: %s)" % SEED)
     unittest.main()

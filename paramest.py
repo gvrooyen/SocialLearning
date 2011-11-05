@@ -112,5 +112,8 @@ class Hat:
             
             if len(change_periods) > 0:
                 self._P_c = 1.0 / (sum(change_periods) / len(change_periods))
+            else:
+                # Guess a reasonable default
+                self._P_c = 0.001
         
         return self._P_c

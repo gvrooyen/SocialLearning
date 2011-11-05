@@ -172,6 +172,11 @@ class Simulate:
         self.total_payoff = 0
         self.r_max = r_max
         
+        # We use the agent script's methods as default. This allows the owner of a Simulate object to override the
+        # move() and observe_who() behavior (for example, this is quite useful during unit testing).        
+        self.agent_move = agent.move
+        self.agent_observe_who = agent.observe_who
+        
         self.random = random.Random(seed)
         agent.random = self.random
         
@@ -303,18 +308,18 @@ class Simulate:
                 
                 if (test_commands == None):
                 
-                    move_act = agent.move(individual.roundsAlive, 
-                                          individual.repertoire, 
-                                          individual.historyRounds,
-                                          individual.historyMoves, 
-                                          individual.historyActs, 
-                                          individual.historyPayoffs, 
-                                          individual.historyDemes, 
-                                          d, 
-                                          self.mode_model_bias, 
-                                          self.mode_cumulative, 
-                                          self.mode_spatial
-                                          )
+                    move_act = self.agent_move(individual.roundsAlive, 
+                                               individual.repertoire, 
+                                               individual.historyRounds,
+                                               individual.historyMoves, 
+                                               individual.historyActs, 
+                                               individual.historyPayoffs, 
+                                               individual.historyDemes, 
+                                               d, 
+                                               self.mode_model_bias, 
+                                               self.mode_cumulative, 
+                                               self.mode_spatial
+                                               )
                 
                 else:
                     # The test suite has provided "canned" moves for us to use
@@ -423,7 +428,7 @@ class Simulate:
                 
                 if self.mode_model_bias:
                     # Ask the individual whom he wants to observe
-                    preferred_teachers = agent.observe_who(exploiterData)
+                    preferred_teachers = self.agent_observe_who(exploiterData)
                     exploiter_sample = [exploiters[preferred_teachers[i][0]]
                                         for i in range(0, min(self.N_observe, len(preferred_teachers)))]
                 else:
