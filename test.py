@@ -8,7 +8,7 @@ from math import *
 import scipy.special
 import paramest
 
-quickTest = True   # Used to skip unit tests that are known to be stable
+quickTest = False   # Used to skip unit tests that are known to be stable
 
 TOLERANCE = 0.08    # Precision required for testing whether statistical parameters were satisfied
 
@@ -898,7 +898,8 @@ class TestEstimation(unittest.TestCase):
     
     def setUp(self):
         # Create a new simulation with a range of default parameters
-        
+
+        old_N_POPULATION = simulate.N_POPULATION
         simulate.N_POPULATION = 2000     # To reduce variability in estimation
 
         self.simulation = simulate.Simulate(N_rounds = 100, 
@@ -920,8 +921,12 @@ class TestEstimation(unittest.TestCase):
                                             # during their lifetime
                                             P_c = 0.1,
                                             
-                                            seed = 'test_Estimation_lambda')
+                                            seed = 'test_Estimation_mu')
         agent.OBSERVE_STRATEGY = 'unittest'
+        
+        # TODO: This set-and-revert is ugly (but necessary! otherwise the value stands for subsequent simulations).
+        #       Replace it with a constructor argument.
+        simulate.N_POPULATION = old_N_POPULATION
         
         
     def test_estimation_P_c_constant(self):
@@ -1007,7 +1012,7 @@ def tearDownModule():
 
 if __name__ == '__main__':
     stats = {}
-    SEED = 'upsilon'
+    SEED = 'phi'
     random.seed(SEED)
     print("Running unit tests... (random seed: %s)" % SEED)
     unittest.main()
