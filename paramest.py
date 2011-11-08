@@ -7,6 +7,7 @@ class Hat:
     
     _N_observe = None
     _P_c = None
+    _P_copyFail = None
     
 
     def __init__(self, roundsAlive, repertoire, historyRounds, historyMoves, historyActs, historyPayoffs, historyDemes,
@@ -117,3 +118,17 @@ class Hat:
                 self._P_c = 0.001
         
         return self._P_c
+
+    def P_copyFail(self):
+        
+        # Simple enough. Count the number of times we failed to copy a model through the OBSERVE action, and divided by
+        # the total number of opportunities. If we've never tried to play OBSERVE, return a guess.
+        #
+        # This function cannot distinguish between copies that failed randomly, and failed due to N_observe exceeding
+        # the available number of exploiters. This side effect may not be entirely undesirable -- it means that
+        # P_copyFail() gives a basic estimate of the probability that an OBSERVE opportunity will fail, regardless of
+        # the reason.
+        
+        if not self._P_copyFail:
+            pass
+            

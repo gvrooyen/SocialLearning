@@ -4,6 +4,7 @@ import sys
 import copy
 import random
 import traceback
+import timer
 from scipy.stats import poisson
 from math import *
 
@@ -197,6 +198,9 @@ class Simulate:
         
         self.round = 0
         
+        self.move_timer = timer.Timer()
+        
+        
     def modify_environment(self):
         for d in range(0, self.N_demes):
             self.demes[d].modify_environment(self.P_c)
@@ -214,6 +218,7 @@ class Simulate:
         i *= 0.05*P_max/(1.0 - (0.95 ** self.r_max))
         
         return int(round(i))
+    
     
     def death_birth(self):
         self.stat_deaths[self.round] = 0    # Set the death count to zero for this round
@@ -249,7 +254,6 @@ class Simulate:
             for i in range(0, births):
                 self.demes[d].population += [Individual()]
         
-                    
     
     def migrate(self):
        
@@ -307,19 +311,29 @@ class Simulate:
                 individual.roundsAlive += 1
                 
                 if (test_commands == None):
-                
-                    move_act = self.agent_move(individual.roundsAlive, 
-                                               individual.repertoire, 
-                                               individual.historyRounds,
-                                               individual.historyMoves, 
-                                               individual.historyActs, 
-                                               individual.historyPayoffs, 
-                                               individual.historyDemes, 
-                                               d, 
-                                               self.mode_model_bias, 
-                                               self.mode_cumulative, 
-                                               self.mode_spatial
-                                               )
+                    
+                    # The move timer measures the total duration of calls to agent_move(), and the number of times it
+                    # was called. This is meant to ensure that the following constraint in the documentation is met:
+                    #
+                    #   3.7 There is no limit to the length of the function, but it cannot, on average, take more
+                    #   than 25 times as long as the example strategy, given in section 3.8, to reach a
+                    #   decision. If, on completion of the tournament, this is found to be the case for your
+                    #   strategy, then it will not be eligible to win the tournament.
+
+                    
+                    with move_timer:
+                        move_act = self.agent_move(individual.roundsAlive, 
+                                                   individual.repertoire, 
+                                                   individual.historyRounds,
+                                                   individual.historyMoves, 
+                                                   individual.historyActs, 
+                                                   individual.historyPayoffs, 
+                                                   individual.historyDemes, 
+                                                   d, 
+                                                   self.mode_model_bias, 
+                                                   self.mode_cumulative, 
+                                                   self.mode_spatial
+                                                   )
                 
                 else:
                     # The test suite has provided "canned" moves for us to use
