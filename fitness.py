@@ -1,3 +1,5 @@
+# -*- coding: iso-8859-15 -*-
+
 import simulate
 import agent
 import random
@@ -12,17 +14,20 @@ from multiprocessing import Pool, Lock
 global accumulated_payoff
 global counter
 global errors
+global accumulated_move_time
 global lock
 
 lock = Lock()
 
-def reduce(payoff):
+def reduce(stats):
     global accumulated_payoff
     global counter
+    global accumulated_move_time
     
     lock.acquire()
-    accumulated_payoff += payoff
+    accumulated_payoff += stats[0]
     counter += 1
+    accumulated_move_time += stats[1]
     lock.release()
 
 def run_simulation(id,rounds):
@@ -37,14 +42,14 @@ def run_simulation(id,rounds):
         lock.acquire()
         if simulation.exception:
             print ("!%d" % id),
-            print >> sys.stderr, "\nError in simulation %d with seed %X:\n"
+            print >> sys.stderr, "\nError in simulation %d with seed %X:\n" % (id, sim_seed)
             print >> sys.stderr, simulation.exception
         else:
             print ("-%d" % id),
         sys.stdout.flush()
         sys.stderr.flush()
         lock.release()
-        return 1.0*simulation.total_payoff/simulation.round
+        return (1.0*simulation.total_payoff/simulation.round,  simulation.move_timer.avg_time())
     except:
         lock.acquire()
         print("\nUnhandled error in simulation %d" % id)
@@ -64,7 +69,7 @@ if __name__ == '__main__':
                         help="Switch on debugging output")
     parser.add_argument('-R', '--rounds', type=int, default=10000,
                         help="The number of rounds in each simulation")
-    parser.add_argument('-S', '--seed', type=string, default = str(random.getrandbits(32)),
+    parser.add_argument('-S', '--seed', type=str, default = str(random.getrandbits(32)),
                         help="Random number seed (a hexadecimal integer) for the simulation")
     args = parser.parse_args()
                         
@@ -74,6 +79,7 @@ if __name__ == '__main__':
     
     agent.MOVE_STRATEGY = args.strategy
     accumulated_payoff = 0
+    accumulated_move_time = 0.0
     counter = 0
     errors = 0
     
@@ -91,5 +97,6 @@ if __name__ == '__main__':
     pool.join()
 
     print("\n\nProcessed %d runs, with %d errors." % (counter, errors))
+    print("Average move time: %.2f us" % (1e6 * accumulated_move_time / counter))
 
-    print(1.0*accumulated_payoff/args.iterations)
+    print("Average payoff per round: %.2f" % (1.0*accumulated_payoff/args.iterations))

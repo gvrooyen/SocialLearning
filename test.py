@@ -1,3 +1,5 @@
+# -*- coding: iso-8859-15 -*-
+
 import simulate
 import agent
 from moves import *
@@ -337,12 +339,9 @@ class TestRunBasic(unittest.TestCase):
         stats['RunBasic']['total_OBSERVEs'] = self.simulation.stat_total_OBSERVEs
         stats['RunBasic']['failed_copies'] = self.simulation.stat_failed_copies
         stats['RunBasic']['P_copyFail'] = self.simulation.P_copyFail
-        
-        # Pickle the simulation object to file, for later analysis and graphing
-        f = open('log/test_RunBasic.sim', 'w')
-        pickle.dump(self.simulation, f)
-        f.close()
-    
+        stats['RunBasic']['move_time'] = self.simulation.move_timer.avg_time()
+            
+            
     @staticmethod
     def printReport():
         
@@ -372,6 +371,7 @@ class TestRunBasic(unittest.TestCase):
         
         print("RunBasic - final population: %d" % stats['RunBasic']['final_population'])
         print("RunBasic - mean total payoff per round: %.2f" % (1.0 * stats['RunBasic']['total_payoff'] / stats['RunBasic']['N_rounds']))
+        print("RunBasic - average time per move: %.2f us" % (1e6 * stats['RunBasic']['move_time']))
         
 
 
@@ -576,12 +576,8 @@ class TestRunSpatial(unittest.TestCase):
         stats['RunSpatial']['total_OBSERVEs'] = self.simulation.stat_total_OBSERVEs
         stats['RunSpatial']['failed_copies'] = self.simulation.stat_failed_copies
         stats['RunSpatial']['P_copyFail'] = self.simulation.P_copyFail
+        stats['RunSpatial']['move_time'] = self.simulation.move_timer.avg_time()
         
-        # Pickle the simulation object to file, for later analysis and graphing
-        f = open('log/test_RunSpatial.sim', 'w')
-        pickle.dump(self.simulation, f)
-        f.close()
-
 
     @staticmethod
     def printReport():
@@ -611,7 +607,9 @@ class TestRunSpatial(unittest.TestCase):
                  1.0 * stats['RunSpatial']['births'] / stats['RunSpatial']['cumulative_population']))
         
         print("RunSpatial - final population: %d" % stats['RunSpatial']['final_population'])
-        print("RunSpatial - mean total payoff per round: %.2f" % (1.0 * stats['RunSpatial']['total_payoff'] / stats['RunSpatial']['N_rounds']))
+        print("RunSpatial - mean total payoff per round: %.2f" % (1.0 * stats['RunSpatial']['total_payoff'] / 
+                                                                  stats['RunSpatial']['N_rounds'] / 3.0))
+        print("RunSpatial - average time per move: %.2f us" % (1e6 * stats['RunSpatial']['move_time']))
 
 
 @unittest.skipIf(quickTest, "in quickTest mode")
@@ -670,6 +668,7 @@ class TestRunCumulative(unittest.TestCase):
         stats['RunCumulative']['total_OBSERVEs'] = self.simulation.stat_total_OBSERVEs
         stats['RunCumulative']['failed_copies'] = self.simulation.stat_failed_copies
         stats['RunCumulative']['P_copyFail'] = self.simulation.P_copyFail
+        stats['RunCumulative']['move_time'] = self.simulation.move_timer.avg_time()
         
         # Pickle the simulation object to file, for later analysis and graphing
         f = open('log/test_RunCumulative.sim', 'w')
@@ -706,6 +705,71 @@ class TestRunCumulative(unittest.TestCase):
         
         print("RunCumulative - final population: %d" % stats['RunCumulative']['final_population'])
         print("RunCumulative - mean total payoff per round: %.2f" % (1.0 * stats['RunCumulative']['total_payoff'] / stats['RunCumulative']['N_rounds']))
+        print("RunCumulative - average time per move: %.2f us" % (1e6 * stats['RunCumulative']['move_time']))
+
+
+class TestRunReference(unittest.TestCase):
+    
+    def setUp(self):
+        
+        self.simulation = simulate.Simulate(mode_spatial = True, mode_cumulative = True,  move_strategy = 'reference')
+
+    def test_RunReference(self):
+        
+        self.simulation.run()
+        self.assertTrue(True)
+
+        total_act_updates = sum([d.stat_act_updates for d in self.simulation.demes])
+        final_population = sum([len(self.simulation.demes[d].population) for d in [0, 1, 2]])
+        total_births = sum(self.simulation.stat_births.values())
+        total_deaths = sum(self.simulation.stat_deaths.values())
+        
+        stats['RunReference'] = {}
+        stats['RunReference']['act_updates'] = total_act_updates
+        stats['RunReference']['N_rounds'] = self.simulation.N_rounds
+        stats['RunReference']['P_c'] = self.simulation.P_c     
+        stats['RunReference']['births'] = total_births
+        stats['RunReference']['deaths'] = total_deaths
+        stats['RunReference']['P_death'] = self.simulation.P_death
+        
+        stats['RunReference']['cumulative_population']  = sum(self.simulation.stat_population.values())
+        stats['RunReference']['final_population'] = final_population
+        stats['RunReference']['total_payoff'] = self.simulation.total_payoff
+        stats['RunReference']['total_OBSERVEs'] = self.simulation.stat_total_OBSERVEs
+        stats['RunReference']['failed_copies'] = self.simulation.stat_failed_copies
+        stats['RunReference']['P_copyFail'] = self.simulation.P_copyFail
+        stats['RunReference']['move_time'] = self.simulation.move_timer.avg_time()
+
+    @staticmethod
+    def printReport():
+
+        if (not stats.has_key('RunReference')):
+            return
+
+        print('--------------------')
+        print("RunReference - act updates: %d/%d (%.4f) for P_c=%.4f" 
+              % (stats['RunReference']['act_updates'], stats['RunReference']['N_rounds'] * simulate.N_ACTS * 3, 
+                 1.0 * stats['RunReference']['act_updates'] / stats['RunReference']['N_rounds']
+                 / simulate.N_ACTS / 3.0, 
+                 stats['RunReference']['P_c']))
+    
+        print("RunReference - failed copies: %d/%d (%.4f) for P_copyFail=%.4f" 
+              % (stats['RunReference']['failed_copies'], stats['RunReference']['total_OBSERVEs'], 
+                 1.0 * stats['RunReference']['failed_copies'] / stats['RunReference']['total_OBSERVEs'], 
+                 stats['RunReference']['P_copyFail']))
+
+        print("RunReference - deaths: %d/%d (%.4f) for P_death=%.4f" 
+              % (stats['RunReference']['deaths'], stats['RunReference']['cumulative_population'], 
+                 1.0 * stats['RunReference']['deaths'] / stats['RunReference']['cumulative_population'], 
+                 stats['RunReference']['P_death']))
+    
+        print("RunReference - births: %d/%d (%.4f)" 
+              % (stats['RunReference']['births'], stats['RunReference']['cumulative_population'], 
+                 1.0 * stats['RunReference']['births'] / stats['RunReference']['cumulative_population']))
+        
+        print("RunReference - final population: %d" % stats['RunReference']['final_population'])
+        print("RunReference - mean total payoff per round: %.2f" % (1.0 * stats['RunReference']['total_payoff'] / stats['RunReference']['N_rounds']))
+        print("RunReference - average time per move: %.2f us" % (1e6 * stats['RunReference']['move_time']))
 
 
 @unittest.skipIf(quickTest, "in quickTest mode")
@@ -772,12 +836,8 @@ class TestRunMax(unittest.TestCase):
         stats['RunMax']['total_OBSERVEs'] = self.simulation.stat_total_OBSERVEs
         stats['RunMax']['failed_copies'] = self.simulation.stat_failed_copies
         stats['RunMax']['P_copyFail'] = self.simulation.P_copyFail
-        
-        # Pickle the simulation object to file, for later analysis and graphing
-        f = open('log/test_RunMax.sim', 'w')
-        pickle.dump(self.simulation, f)
-        f.close()
-    
+        stats['RunMax']['move_time'] = self.simulation.move_timer.avg_time()
+            
     
     @staticmethod
     def printReport():
@@ -808,6 +868,7 @@ class TestRunMax(unittest.TestCase):
         
         print("RunMax - final population: %d" % stats['RunMax']['final_population'])
         print("RunMax - mean total payoff per round: %.2f" % (1.0 * stats['RunMax']['total_payoff'] / stats['RunMax']['N_rounds']))
+        print("RunMax - average time per move: %.2f us" % (1e6 * stats['RunMax']['move_time']))
 
 
 @unittest.skipIf(quickTest, "in quickTest mode")
@@ -894,6 +955,8 @@ class TestRepeatability(unittest.TestCase):
             self.assertListEqual(pop1[i].historyDemes, pop2[i].historyDemes)
 
 
+
+@unittest.skipIf(quickTest, "in quickTest mode")
 class TestEstimation(unittest.TestCase):
     
     def setUp(self):
@@ -1008,6 +1071,7 @@ def tearDownModule():
     TestRunBasic.printReport()
     TestRunSpatial.printReport()
     TestRunCumulative.printReport()
+    TestRunReference.printReport()
     TestRunMax.printReport()
 
 if __name__ == '__main__':

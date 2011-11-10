@@ -1,3 +1,5 @@
+# -*- coding: iso-8859-15 -*-
+
 from moves import *
 import agent
 import sys
@@ -159,7 +161,8 @@ class Simulate:
                        N_migrate = N_MIGRATE,
                        r_max = R_MAX,
                        birth_control = False,
-                       seed = None):
+                       seed = None, 
+                       move_strategy = None):
         self.mode_spatial = mode_spatial
         self.mode_cumulative = mode_cumulative
         self.mode_model_bias = mode_model_bias
@@ -177,6 +180,9 @@ class Simulate:
         # move() and observe_who() behavior (for example, this is quite useful during unit testing).        
         self.agent_move = agent.move
         self.agent_observe_who = agent.observe_who
+        
+        if move_strategy:
+            agent.MOVE_STRATEGY = move_strategy
         
         self.random = random.Random(seed)
         agent.random = self.random
@@ -308,7 +314,6 @@ class Simulate:
             i = 0;  # Used to keep count of individuals for when using test commands
             
             for individual in self.demes[d].population:
-                individual.roundsAlive += 1
                 
                 if (test_commands == None):
                     
@@ -321,7 +326,7 @@ class Simulate:
                     #   strategy, then it will not be eligible to win the tournament.
 
                     
-                    with move_timer:
+                    with self.move_timer:
                         move_act = self.agent_move(individual.roundsAlive, 
                                                    individual.repertoire, 
                                                    individual.historyRounds,
@@ -352,7 +357,7 @@ class Simulate:
                     INNOVATE. In the cumulative case, the new act is acquired with refinement level 0.
                     """
                     
-                    individual.historyRounds += [individual.roundsAlive]
+                    individual.historyRounds += [individual.roundsAlive+1]
                     individual.historyMoves += [INNOVATE]                                        
                     individual.historyDemes += [d]
                     
@@ -386,7 +391,7 @@ class Simulate:
                         payoff = self.demes[d].acts[act]
                         if individual.refinements.has_key(act):
                             payoff += self.payoff_increment(individual.refinements[act])
-                        individual.historyRounds += [individual.roundsAlive]
+                        individual.historyRounds += [individual.roundsAlive+1]
                         individual.historyMoves += [EXPLOIT]                    
                         individual.historyActs += [act]
                         individual.historyPayoffs += [payoff]
@@ -409,7 +414,7 @@ class Simulate:
                             individual.refinements[act] += 1
                         
                         # TODO: There's some repetition in history tracking -- refactor into Individual.recordHistory()
-                        individual.historyRounds += [individual.roundsAlive]
+                        individual.historyRounds += [individual.roundsAlive+1]
                         individual.historyMoves += [REFINE]
                         individual.historyActs += [act]
                         individual.historyPayoffs += [self.demes[d].acts[act] 
@@ -418,7 +423,8 @@ class Simulate:
                     
                 else:
                     raise AttributeError('Unknown action %d',  move_act[0])
-                    
+                
+                individual.roundsAlive += 1
                 i += 1  # Used to keep count of individuals for when using test commands
                 
             # If we're playing in the model-bias mode, we need to build up a list of all individuals playing EXPLOIT
@@ -499,7 +505,9 @@ class Simulate:
         if (self.mode_spatial):
             self.migrate()
     
-    def run(self, silent_fail = False):
+    def run(self, silent_fail = False, seed = None):
+        if seed:
+            self.random = random.Random(seed)
         try:
             for i in range(0, self.N_rounds):
                 self.step()

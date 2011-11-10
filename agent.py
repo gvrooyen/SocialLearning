@@ -44,6 +44,38 @@ def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, hist
                 return (INNOVATE, )
         else:
             return (move, )
+            
+    if (MOVE_STRATEGY == 'reference'):
+        if roundsAlive > 1:     # If this isn't my first or second roundsAlive
+        
+            # Calculate mean payoff from playing EXPLOIT
+            myMeanPayoff = (sum([p for i, p in enumerate(historyPayoffs) if historyMoves[i] == EXPLOIT]) / 
+                                float(historyMoves.count(EXPLOIT)) )
+            
+            # Get last payoff from EXPLOIT
+            lastPayoff = historyPayoffs[len(historyMoves)-1-historyMoves[::-1].index(EXPLOIT)]
+            
+            lastMove = historyMoves[-1]
+            
+            if (lastMove == OBSERVE) or (lastPayoff >= myMeanPayoff):
+                if (random.random() < 0.05) and canChooseModel:
+                    # If allowed, REFINE best known act 1/20 of the time
+                    return (REFINE, max(repertoire, key=repertoire.get))
+                else:
+                    # otherwise EXPLOIT best known act
+                    return (EXPLOIT, max(repertoire, key=repertoire.get))
+            else:
+                # Payoffs have dropped, so OBSERVE
+                return (OBSERVE, )
+                
+        elif roundsAlive > 0:
+            # On my second round, EXPLOIT the act innovated on the first round
+            return (EXPLOIT, repertoire.keys()[0])
+        
+        else:
+            # This must be the first round
+            return (INNOVATE, )
+            
     else:
         raise AttributeError("Unknown move strategy '%s'" % MOVE_STRATEGY)
     
@@ -59,6 +91,8 @@ def observe_who(exploiterData):
         # Return the model list shuffled with a fixed random number seed. Useful for unit tests.
         random.shuffle(exploiterData, lambda: 0)
         return exploiterData
+    elif (OBSERVE_STRATEGY == 'reference'):
+        return sorted(exploiterData,key=lambda x:x[AGE],reverse=True) # copy oldest
     else:
         raise AttributeError("Unknown observation strategy '%s'" % OBSERVE_STRATEGY)
 
