@@ -12,7 +12,7 @@ import paramest
 
 quickTest = False   # Used to skip unit tests that are known to be stable
 
-TOLERANCE = 0.08    # Precision required for testing whether statistical parameters were satisfied
+TOLERANCE = 0.081    # Precision required for testing whether statistical parameters were satisfied
 
 global stats
 
