@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project SocialLearning -->
-<!-- Saved: 2011-10-30, 00:01:47 -->
+<!-- Saved: 2011-11-11, 16:14:50 -->
 <!-- Copyright (C) 2011 G-J van Rooyen, gvrooyen@sun.ac.za -->
 <Project version="4.6">
   <Language>en</Language>
@@ -19,6 +19,7 @@
     <Source>test.py</Source>
     <Source>fitness.py</Source>
     <Source>paramest.py</Source>
+    <Source>ranges.py</Source>
   </Sources>
   <Forms>
   </Forms>
