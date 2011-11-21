@@ -33,36 +33,31 @@ def reduce(stats):
     accumulated_move_time += stats[1]
     lock.release()
 
-def run_simulation(id,rounds):
-    sim_seed = seed + id
-    lock.acquire()
-    print ("+%d" % id),
-    sys.stdout.flush()  
-    lock.release()
+def run_simulation(id, rounds, seed):
+    logger = logging.getLogger(__name__)
+    sim_seed = int(seed) + id
+    logger.debug("Simulation %d started" % id)
     simulation = simulate.Simulate(N_rounds = rounds, seed=sim_seed)
     try:
         simulation.run(silent_fail = True, seed=sim_seed)
-        lock.acquire()
         if simulation.exception:
-            print ("!%d" % id),
-            print >> sys.stderr, "\nError in simulation %d with seed %X:\n" % (id, sim_seed)
-            print >> sys.stderr, simulation.exception
+            logger.error("Error in simulation %d with seed %X:" % (id, sim_seed))
+            logger.error(simulation.exception)
         else:
-            print ("-%d" % id),
-        sys.stdout.flush()
-        sys.stderr.flush()
-        lock.release()
+            logger.debug("Simulation %d completed" % id)
         return (1.0*simulation.total_payoff/simulation.round,  simulation.move_timer.avg_time())
     except:
-        lock.acquire()
-        print("\nUnhandled error in simulation %d" % id)
+        logger.critical("Unhandled error in simulation %d" % id)
         (T,V,S) = sys.exc_info()
-        print(T, V.message)
-        traceback.print_tb(S)
+        logger.critical(T)
+        logger.critical(V.message)
+        logger.critical(traceback.format_tb(S))
+        lock.acquire()
         errors += 1
         lock.release()
         return 0
-
+        
+        
 def fitness(agent_path, strategy=None, iterations=DEFAULT_ITERATIONS, rounds=DEFAULT_ROUNDS, seed=None):
     """
     Measure the fitness of the agent script at the specified path.
@@ -75,6 +70,11 @@ def fitness(agent_path, strategy=None, iterations=DEFAULT_ITERATIONS, rounds=DEF
     if strategy:
         agent.MOVE_STRATEGY = strategy
         
+    global accumulated_move_time
+    global accumulated_payoff
+    global counter
+    global errors
+        
     accumulated_move_time = 0.0
     accumulated_payoff = 0
     counter = 0
@@ -86,17 +86,18 @@ def fitness(agent_path, strategy=None, iterations=DEFAULT_ITERATIONS, rounds=DEF
         
     pool = Pool()
     
-    logger.info("Starting simulation of '%s' with seed: %X" % (args.strategy, seed))
+    logger.info("Starting simulation of '%s' with seed: %s" % (strategy, seed))
     
     for i in xrange(0, iterations):
-        pool.apply_async(run_simulation, (i, rounds), callback=reduce)
+        logger.debug("Iteration %d" % (i, ))
+        pool.apply_async(run_simulation, (i, rounds, seed), callback=reduce)
     
     pool.close()
     pool.join()
     
     logger.info("Processed %d runs, with %d errors." % (counter, errors))
     logger.info("Average move time: %.2f us" % (1e6 * accumulated_move_time / counter))
-    logger.info("Average payoff per round: %.2f" % (1.0*accumulated_payoff/args.iterations))
+    logger.info("Average payoff per round: %.2f" % (1.0*accumulated_payoff/iterations))
         
         
 
@@ -117,26 +118,32 @@ if __name__ == '__main__':
         logger = multiprocessing.log_to_stderr()
         logger.setLevel(multiprocessing.SUBDEBUG)
     
-    agent.MOVE_STRATEGY = args.strategy
-    accumulated_payoff = 0
-    accumulated_move_time = 0.0
-    counter = 0
-    errors = 0
+    logger = logging.getLogger(__name__)
+    logger.addHandler(logging.StreamHandler())
+    logger.setLevel(logging.DEBUG)
     
-    seed = int(args.seed, 16)
-    random.seed(seed)
-    
-    pool = Pool()
-    
-    print("Starting simulation of '%s' with seed: %X" % (args.strategy, seed))
-    
-    for i in xrange(0, args.iterations):
-        pool.apply_async(run_simulation, (i,args.rounds), callback=reduce)
-        
-    pool.close()
-    pool.join()
+    #agent.MOVE_STRATEGY = args.strategy
+    #accumulated_payoff = 0
+    #accumulated_move_time = 0.0
+    #counter = 0
+    #errors = 0
+    #
+    #seed = int(args.seed, 16)
+    #random.seed(seed)
+    #
+    #pool = Pool()
+    #
+    #print("Starting simulation of '%s' with seed: %X" % (args.strategy, seed))
+    #
+    #for i in xrange(0, args.iterations):
+        #pool.apply_async(run_simulation, (i,args.rounds), callback=reduce)
 
-    print("\n\nProcessed %d runs, with %d errors." % (counter, errors))
-    print("Average move time: %.2f us" % (1e6 * accumulated_move_time / counter))
+    #pool.close()
+    #pool.join()
 
-    print("Average payoff per round: %.2f" % (1.0*accumulated_payoff/args.iterations))
+    #print("\n\nProcessed %d runs, with %d errors." % (counter, errors))
+    #print("Average move time: %.2f us" % (1e6 * accumulated_move_time / counter))
+
+    #print("Average payoff per round: %.2f" % (1.0*accumulated_payoff/args.iterations))
+
+    fitness('agents/fitness/', args.strategy, args.iterations, args.rounds, args.seed)
