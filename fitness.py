@@ -11,6 +11,9 @@ import traceback
 
 from multiprocessing import Pool, Lock
 
+DEFAULT_ITERATIONS = 100
+DEFAULT_ROUNDS = 10000
+
 global accumulated_payoff
 global counter
 global errors
@@ -31,12 +34,12 @@ def reduce(stats):
     lock.release()
 
 def run_simulation(id,rounds):
-    sim_seed = random.getrandbits(32)
+    sim_seed = seed + id
     lock.acquire()
     print ("+%d" % id),
     sys.stdout.flush()  
     lock.release()
-    simulation = simulate.Simulate(N_rounds = rounds)
+    simulation = simulate.Simulate(N_rounds = rounds, seed=sim_seed)
     try:
         simulation.run(silent_fail = True, seed=sim_seed)
         lock.acquire()
@@ -60,14 +63,51 @@ def run_simulation(id,rounds):
         lock.release()
         return 0
 
+def fitness(agent_path, strategy=None, iterations=DEFAULT_ITERATIONS, rounds=DEFAULT_ROUNDS, seed=None):
+    """
+    Measure the fitness of the agent script at the specified path.
+    """
+    
+    # TODO: Refactor __main__ into this function
+    
+    logger = logging.getLogger(__name__)
+    
+    if strategy:
+        agent.MOVE_STRATEGY = strategy
+        
+    accumulated_move_time = 0.0
+    accumulated_payoff = 0
+    counter = 0
+    errors = 0
+    
+    if seed == None:
+        seed = random.getrandbits(32)
+    random.seed(seed)
+        
+    pool = Pool()
+    
+    logger.info("Starting simulation of '%s' with seed: %X" % (args.strategy, seed))
+    
+    for i in xrange(0, iterations):
+        pool.apply_async(run_simulation, (i, rounds), callback=reduce)
+    
+    pool.close()
+    pool.join()
+    
+    logger.info("Processed %d runs, with %d errors." % (counter, errors))
+    logger.info("Average move time: %.2f us" % (1e6 * accumulated_move_time / counter))
+    logger.info("Average payoff per round: %.2f" % (1.0*accumulated_payoff/args.iterations))
+        
+        
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Evaluate the fitness of a social learning strategy")
     parser.add_argument('strategy', type=str, help="The name of the strategy to evaluate")
-    parser.add_argument('-N', '--iterations', type=int, default=100,
+    parser.add_argument('-N', '--iterations', type=int, default=DEFAULT_ITERATIONS,
                         help="The number of iterations over which to estimate")
     parser.add_argument('-D', '--debug', type=bool, default = False,
                         help="Switch on debugging output")
-    parser.add_argument('-R', '--rounds', type=int, default=10000,
+    parser.add_argument('-R', '--rounds', type=int, default=DEFAULT_ROUNDS,
                         help="The number of rounds in each simulation")
     parser.add_argument('-S', '--seed', type=str, default = str(random.getrandbits(32)),
                         help="Random number seed (a hexadecimal integer) for the simulation")

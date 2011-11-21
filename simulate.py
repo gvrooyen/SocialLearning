@@ -506,7 +506,7 @@ class Simulate:
             self.migrate()
     
     def run(self, silent_fail = False, seed = None):
-        if seed:
+        if seed != None:            
             self.random = random.Random(seed)
         try:
             for i in range(0, self.N_rounds):

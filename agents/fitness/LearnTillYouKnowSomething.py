@@ -6,9 +6,6 @@ from moves import * #bring in standard names for moves
 # can be imported here if needed
 import math 
 
-MOVE_STRATEGY = 'random'
-OBSERVE_STRATEGY = 'random'
-
 N_ACTS = 100
 
 random = object()
@@ -33,14 +30,5 @@ def observe_who(exploiterData):
     'This function MUST return the given list of tuples, exploiterData, sorted by preference for copying.'
     'Data given for each agent are (index in this list,age,total accrued payoff,number of times copied,number of offpsring)'
     'All values except index have error applied'
-    if (OBSERVE_STRATEGY == 'random'):
-        # Return the model list randomly shuffled. Leave as is if not engaging with model bias
-        random.shuffle(exploiterData)
-        return exploiterData
-    elif (OBSERVE_STRATEGY == 'unittest'):
-        # Return the model list shuffled with a fixed random number seed. Useful for unit tests.
-        random.shuffle(exploiterData, lambda: 0)
-        return exploiterData
-    else:
-        raise AttributeError("Unknown observation strategy '%s'" % OBSERVE_STRATEGY)
 
+    return 0

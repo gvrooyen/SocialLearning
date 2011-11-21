@@ -1,0 +1,12 @@
+*.pyc
+*.m
+*.log
+*.err
+*.pkl
+*.prof
+.coverage
+.eric4project/
+.ropeproject/
+cython/
+htmlcov/
+log/

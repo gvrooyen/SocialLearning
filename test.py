@@ -10,6 +10,7 @@ from math import *
 import scipy.special
 import paramest
 
+# TODO: Move this to a command line parameter
 quickTest = False   # Used to skip unit tests that are known to be stable
 
 TOLERANCE = 0.081    # Precision required for testing whether statistical parameters were satisfied
