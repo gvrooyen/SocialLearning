@@ -12,5 +12,7 @@ if __name__ == '__main__':
         # This returns a git blob corresponding to the desired agent
         agent = random.choice(repo.agents_fitness)
         
-        # TODO: Add fitness simulation run.
-        #       However, we first need to refactor fitness.py to allow 
+        print agent.name
+        
+        input()
+        

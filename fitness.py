@@ -22,6 +22,18 @@ global lock
 
 lock = Lock()
 
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
+
+
+class RunResults():
+    
+    N_runs = None             # The number of successful simulation runs
+    N_errors = None           # The number of simulation runs that failed
+    avg_T_move = None         # The average time per move by the agent strategy
+    avg_payoff = None         # The average total payoff per round (i.e. over the whole population)
+
+
 def reduce(stats):
     global accumulated_payoff
     global counter
@@ -32,6 +44,7 @@ def reduce(stats):
     counter += 1
     accumulated_move_time += stats[1]
     lock.release()
+
 
 def run_simulation(id, rounds, seed):
     logger = logging.getLogger(__name__)
@@ -61,9 +74,13 @@ def run_simulation(id, rounds, seed):
 def fitness(agent_path, strategy=None, iterations=DEFAULT_ITERATIONS, rounds=DEFAULT_ROUNDS, seed=None):
     """
     Measure the fitness of the agent script at the specified path.
-    """
     
-    # TODO: Refactor __main__ into this function
+    The function returns an object with the following fields:
+        N_runs:     The number of successful simulation runs
+        N_errors:   The number of simulation runs that failed
+        avg_T_move: The average time per move by the agent strategy
+        avg_payoff: The average total payoff per round (i.e. over the whole population)
+    """
     
     logger = logging.getLogger(__name__)
     
@@ -95,18 +112,26 @@ def fitness(agent_path, strategy=None, iterations=DEFAULT_ITERATIONS, rounds=DEF
     pool.close()
     pool.join()
     
+    result = RunResults()
+    
+    result.N_runs = counter
+    result.N_errors = errors
+    result.avg_T_move = (1e6 * accumulated_move_time / counter)     # Average move time in microseconds
+    result.avg_payoff = (1.0*accumulated_payoff/iterations)         # Average payoff per round
+    
     logger.info("Processed %d runs, with %d errors." % (counter, errors))
-    logger.info("Average move time: %.2f us" % (1e6 * accumulated_move_time / counter))
-    logger.info("Average payoff per round: %.2f" % (1.0*accumulated_payoff/iterations))
+    logger.info("Average move time: %.2f us" % result.avg_T_move)
+    logger.info("Average payoff per round: %.2f" % result.avg_payoff)
         
-        
+    return result
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Evaluate the fitness of a social learning strategy")
     parser.add_argument('strategy', type=str, help="The name of the strategy to evaluate")
     parser.add_argument('-N', '--iterations', type=int, default=DEFAULT_ITERATIONS,
                         help="The number of iterations over which to estimate")
-    parser.add_argument('-D', '--debug', type=bool, default = False,
+    parser.add_argument('-D', '--debug', action='store_true', default = False,
                         help="Switch on debugging output")
     parser.add_argument('-R', '--rounds', type=int, default=DEFAULT_ROUNDS,
                         help="The number of rounds in each simulation")
@@ -114,36 +139,18 @@ if __name__ == '__main__':
                         help="Random number seed (a hexadecimal integer) for the simulation")
     args = parser.parse_args()
                         
-    if args.debug:
-        logger = multiprocessing.log_to_stderr()
-        logger.setLevel(multiprocessing.SUBDEBUG)
+    #if args.debug:
+        #logger = multiprocessing.log_to_stderr()
+        #logger.setLevel(multiprocessing.SUBDEBUG)
+        
     
     logger = logging.getLogger(__name__)
     logger.addHandler(logging.StreamHandler())
-    logger.setLevel(logging.DEBUG)
     
-    #agent.MOVE_STRATEGY = args.strategy
-    #accumulated_payoff = 0
-    #accumulated_move_time = 0.0
-    #counter = 0
-    #errors = 0
-    #
-    #seed = int(args.seed, 16)
-    #random.seed(seed)
-    #
-    #pool = Pool()
-    #
-    #print("Starting simulation of '%s' with seed: %X" % (args.strategy, seed))
-    #
-    #for i in xrange(0, args.iterations):
-        #pool.apply_async(run_simulation, (i,args.rounds), callback=reduce)
-
-    #pool.close()
-    #pool.join()
-
-    #print("\n\nProcessed %d runs, with %d errors." % (counter, errors))
-    #print("Average move time: %.2f us" % (1e6 * accumulated_move_time / counter))
-
-    #print("Average payoff per round: %.2f" % (1.0*accumulated_payoff/args.iterations))
-
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
+    
     fitness('agents/fitness/', args.strategy, args.iterations, args.rounds, args.seed)
+        
