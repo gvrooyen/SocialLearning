@@ -6,9 +6,6 @@ from moves import * #bring in standard names for moves
 # can be imported here if needed
 import math 
 
-MOVE_STRATEGY = 'random'
-OBSERVE_STRATEGY = 'random'
-
 N_ACTS = 100
 
 random = object()
@@ -26,73 +23,40 @@ def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, hist
     REFINE, or (MOVE,) if MOVE is INNOVATE or OBSERVE.
     """
     
-    if (MOVE_STRATEGY == 'random'):
-        if canPlayRefine:
-            move = random.randint(-1, 2)
-        else:
-            move = random.randint(-1, 2)
-            if (move == 2):
-                move = 1
-        if (move == EXPLOIT):
-            act = random.randint(1, N_ACTS)
-            return (move, act)
-        if (move == REFINE):
-            if (len(repertoire) > 0):
-                act = random.choice(repertoire.keys())
-                return (move, act)
-            else:
-                return (INNOVATE, )
-        else:
-            return (move, )
-            
-    if (MOVE_STRATEGY == 'reference'):
-        if roundsAlive > 1:     # If this isn't my first or second roundsAlive
+    if roundsAlive > 1:     # If this isn't my first or second roundsAlive
+    
+        # Calculate mean payoff from playing EXPLOIT
+        myMeanPayoff = (sum([p for i, p in enumerate(historyPayoffs) if historyMoves[i] == EXPLOIT]) / 
+                            float(historyMoves.count(EXPLOIT)) )
         
-            # Calculate mean payoff from playing EXPLOIT
-            myMeanPayoff = (sum([p for i, p in enumerate(historyPayoffs) if historyMoves[i] == EXPLOIT]) / 
-                                float(historyMoves.count(EXPLOIT)) )
-            
-            # Get last payoff from EXPLOIT
-            lastPayoff = historyPayoffs[len(historyMoves)-1-historyMoves[::-1].index(EXPLOIT)]
-            
-            lastMove = historyMoves[-1]
-            
-            if (lastMove == OBSERVE) or (lastPayoff >= myMeanPayoff):
-                if (random.random() < 0.05) and canChooseModel:
-                    # If allowed, REFINE best known act 1/20 of the time
-                    return (REFINE, max(repertoire, key=repertoire.get))
-                else:
-                    # otherwise EXPLOIT best known act
-                    return (EXPLOIT, max(repertoire, key=repertoire.get))
-            else:
-                # Payoffs have dropped, so OBSERVE
-                return (OBSERVE, )
-                
-        elif roundsAlive > 0:
-            # On my second round, EXPLOIT the act innovated on the first round
-            return (EXPLOIT, repertoire.keys()[0])
+        # Get last payoff from EXPLOIT
+        lastPayoff = historyPayoffs[len(historyMoves)-1-historyMoves[::-1].index(EXPLOIT)]
         
+        lastMove = historyMoves[-1]
+        
+        if (lastMove == OBSERVE) or (lastPayoff >= myMeanPayoff):
+            if (random.random() < 0.05) and canChooseModel:
+                # If allowed, REFINE best known act 1/20 of the time
+                return (REFINE, max(repertoire, key=repertoire.get))
+            else:
+                # otherwise EXPLOIT best known act
+                return (EXPLOIT, max(repertoire, key=repertoire.get))
         else:
-            # This must be the first round
-            return (INNOVATE, )
+            # Payoffs have dropped, so OBSERVE
+            return (OBSERVE, )
             
+    elif roundsAlive > 0:
+        # On my second round, EXPLOIT the act innovated on the first round
+        return (EXPLOIT, repertoire.keys()[0])
+    
     else:
-        raise AttributeError("Unknown move strategy '%s'" % MOVE_STRATEGY)
+        # This must be the first round
+        return (INNOVATE, )
+        
     
 def observe_who(exploiterData):
     'This function MUST return the given list of tuples, exploiterData, sorted by preference for copying.'
     'Data given for each agent are (index in this list,age,total accrued payoff,number of times copied,number of offpsring)'
     'All values except index have error applied'
-    if (OBSERVE_STRATEGY == 'random'):
-        # Return the model list randomly shuffled. Leave as is if not engaging with model bias
-        random.shuffle(exploiterData)
-        return exploiterData
-    elif (OBSERVE_STRATEGY == 'unittest'):
-        # Return the model list shuffled with a fixed random number seed. Useful for unit tests.
-        random.shuffle(exploiterData, lambda: 0)
-        return exploiterData
-    elif (OBSERVE_STRATEGY == 'reference'):
-        return sorted(exploiterData,key=lambda x:x[AGE],reverse=True) # copy oldest
-    else:
-        raise AttributeError("Unknown observation strategy '%s'" % OBSERVE_STRATEGY)
+    return sorted(exploiterData,key=lambda x:x[AGE],reverse=True) # copy oldest
 

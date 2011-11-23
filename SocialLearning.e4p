@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project SocialLearning -->
-<!-- Saved: 2011-11-13, 20:04:09 -->
+<!-- Saved: 2011-11-22, 23:42:56 -->
 <!-- Copyright (C) 2011 G-J van Rooyen, gvrooyen@sun.ac.za -->
 <Project version="4.6">
   <Language>en</Language>
@@ -24,6 +24,7 @@
     <Source>agents/fitness/LearnTillYouKnowSomething.py</Source>
     <Source>agents/fitness/RandomMoves.py</Source>
     <Source>agents/fitness/Reference.py</Source>
+    <Source>explore_fitness.py</Source>
   </Sources>
   <Forms>
   </Forms>
