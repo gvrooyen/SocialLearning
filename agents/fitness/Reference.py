@@ -7,6 +7,7 @@ from moves import * #bring in standard names for moves
 import math 
 
 N_ACTS = 100
+STRATEGY_NAME = 'Reference'
 
 random = object()
 

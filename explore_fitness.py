@@ -55,11 +55,11 @@ if __name__ == '__main__':
         
         # Convert the agent's path from something like 'agents/fitness/Reference.py' to an importable submodule
         # path like 'agents.fitness.Reference'
-        agent_module = agent.path.replace('/', '.')[:-3]
+        agent_module_name = agent.path.replace('/', '.')[:-3]
         
         # Do an import by string reference. The 'fromlist' argument is necessary because we are importing a submodule
         # from a package (otherwise only the empty 'fitness' module will be imported        
-        agent = __import__(agent_module, fromlist=['*'])
+        agent = __import__(agent_module_name, fromlist=['*'])
         
         try:
             explore_ranges = agent.explore_ranges
@@ -68,4 +68,4 @@ if __name__ == '__main__':
         
         params = selectParameters(agent_repo.name, explore_ranges)
         
-        
+        sample = fitness.fitness(agent.path

@@ -1,7 +1,6 @@
 # -*- coding: iso-8859-15 -*-
 
 import simulate
-import agent
 import random
 import sys
 import argparse
@@ -19,6 +18,7 @@ global counter
 global errors
 global accumulated_move_time
 global lock
+global agent
 
 lock = Lock()
 
@@ -47,9 +47,12 @@ def reduce(stats):
 
 
 def run_simulation(id, rounds, seed):
+    global agent
+    
     logger = logging.getLogger(__name__)
     sim_seed = int(seed) + id
     logger.debug("Simulation %d started" % id)
+    simulate.agent = agent
     simulation = simulate.Simulate(N_rounds = rounds, seed=sim_seed)
     try:
         simulation.run(silent_fail = True, seed=sim_seed)
@@ -71,9 +74,17 @@ def run_simulation(id, rounds, seed):
         return 0
         
         
-def fitness(agent_path, strategy=None, iterations=DEFAULT_ITERATIONS, rounds=DEFAULT_ROUNDS, seed=None):
+def fitness(agent_module=None, sim_parameters=None, iterations=DEFAULT_ITERATIONS,
+            rounds=DEFAULT_ROUNDS, seed=None):
     """
     Measure the fitness of the agent script at the specified path.
+    
+    Arguments:
+        agent_module:   Reference to the imported agent module to use
+        sim_parameters: A dictionary of parameters to the simulate.Simulate() class's initialization
+        iterations:     Number of simulations to run to estimate the fitness
+        rounds:         Number of rounds per simulation run
+        seed:           Random number seed (for reproducible fitness runs)
     
     The function returns an object with the following fields:
         N_runs:     The number of successful simulation runs
@@ -84,13 +95,11 @@ def fitness(agent_path, strategy=None, iterations=DEFAULT_ITERATIONS, rounds=DEF
     
     logger = logging.getLogger(__name__)
     
-    if strategy:
-        agent.MOVE_STRATEGY = strategy
-        
     global accumulated_move_time
     global accumulated_payoff
     global counter
     global errors
+    global agent
         
     accumulated_move_time = 0.0
     accumulated_payoff = 0
@@ -103,7 +112,9 @@ def fitness(agent_path, strategy=None, iterations=DEFAULT_ITERATIONS, rounds=DEF
         
     pool = Pool()
     
-    logger.info("Starting simulation of '%s' with seed: %s" % (strategy, seed))
+    agent = agent_module
+    
+    logger.info("Starting simulation of '%s' with seed: %s" % (agent_module.__name__, seed))
     
     for i in xrange(0, iterations):
         logger.debug("Iteration %d" % (i, ))
@@ -142,7 +153,6 @@ if __name__ == '__main__':
     #if args.debug:
         #logger = multiprocessing.log_to_stderr()
         #logger.setLevel(multiprocessing.SUBDEBUG)
-        
     
     logger = logging.getLogger(__name__)
     logger.addHandler(logging.StreamHandler())
@@ -152,5 +162,9 @@ if __name__ == '__main__':
     else:
         logger.setLevel(logging.INFO)
     
-    fitness('agents/fitness/', args.strategy, args.iterations, args.rounds, args.seed)
-        
+    try:
+        agent = __import__('agents.fitness.'+args.strategy, fromlist=['*'])
+    except:
+        logger.error('Could not import the specified agent module at agents/fitness/'+args.strategy)
+    else:
+        fitness(agent_module=agent, iterations=args.iterations, rounds=args.rounds, seed=args.seed)
