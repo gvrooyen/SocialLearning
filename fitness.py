@@ -50,7 +50,7 @@ def run_simulation(id, rounds, seed):
     global agent
     
     logger = logging.getLogger(__name__)
-    sim_seed = int(seed) + id
+    sim_seed = int(seed, 16) + id
     logger.debug("Simulation %d started" % id)
     simulate.agent = agent
     simulation = simulate.Simulate(N_rounds = rounds, seed=sim_seed)
@@ -146,7 +146,7 @@ if __name__ == '__main__':
                         help="Switch on debugging output")
     parser.add_argument('-R', '--rounds', type=int, default=DEFAULT_ROUNDS,
                         help="The number of rounds in each simulation")
-    parser.add_argument('-S', '--seed', type=str, default = str(random.getrandbits(32)),
+    parser.add_argument('-S', '--seed', type=str, default = ('%X' % random.getrandbits(32)),
                         help="Random number seed (a hexadecimal integer) for the simulation")
     args = parser.parse_args()
                         
