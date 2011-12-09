@@ -20,6 +20,8 @@ global accumulated_move_time
 global lock
 global agent
 
+agent = None
+
 lock = Lock()
 
 logger = logging.getLogger(__name__)
@@ -46,14 +48,13 @@ def reduce(stats):
     lock.release()
 
 
-def run_simulation(id, rounds, seed):
-    global agent
+def run_simulation(id, rounds, seed, agent_module, sim_parameters):
     
     logger = logging.getLogger(__name__)
     sim_seed = int(seed, 16) + id
     logger.debug("Simulation %d started" % id)
-    simulate.agent = agent
-    simulation = simulate.Simulate(N_rounds = rounds, seed=sim_seed)
+    simulate.agent = __import__(agent_module, fromlist=['*'])
+    simulation = simulate.Simulate(N_rounds = rounds, seed=sim_seed, **sim_parameters)
     try:
         simulation.run(silent_fail = True, seed=sim_seed)
         if simulation.exception:
@@ -107,18 +108,16 @@ def fitness(agent_module=None, sim_parameters=None, iterations=DEFAULT_ITERATION
     errors = 0
     
     if seed == None:
-        seed = random.getrandbits(32)
+        seed = ('%X' % random.getrandbits(32))
     random.seed(seed)
         
     pool = Pool()
     
-    agent = agent_module
-    
-    logger.info("Starting simulation of '%s' with seed: %s" % (agent_module.__name__, seed))
+    logger.info("Starting simulation of '%s' with seed: %s" % (agent_module, seed))
     
     for i in xrange(0, iterations):
         logger.debug("Iteration %d" % (i, ))
-        pool.apply_async(run_simulation, (i, rounds, seed), callback=reduce)
+        pool.apply_async(run_simulation, (i, rounds, seed, agent_module, sim_parameters), callback=reduce)
     
     pool.close()
     pool.join()
@@ -167,4 +166,4 @@ if __name__ == '__main__':
     except:
         logger.error('Could not import the specified agent module at agents/fitness/'+args.strategy)
     else:
-        fitness(agent_module=agent, iterations=args.iterations, rounds=args.rounds, seed=args.seed)
+        fitness(agent_module='agents.fitness.'+args.strategy, iterations=args.iterations, rounds=args.rounds, seed=args.seed)
