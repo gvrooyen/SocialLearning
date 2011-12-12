@@ -2,6 +2,8 @@ import fitness
 import repodata
 import random
 import ranges
+import pymongo
+import datetime
 
 from math import exp, log
 
@@ -49,10 +51,15 @@ if __name__ == '__main__':
     # We only explore agents that have been submitted to the local git repository
     repo = repodata.RepoData()
     
+    connection = pymongo.Connection()
+    
+    db = connection.SocialLearning
+    collection = db.fitness
+    
     while True:
         
-        # This returns a git blob corresponding to the desired agent. Useful fields are agent.name (the filename) and
-        # agent.path (filename including relative path)
+        # This returns a git blob corresponding to the desired agent. Useful fields are agent_repo.name (the filename)
+        # and agent_repo.path (filename including relative path)
         agent_repo = random.choice(repo.agents_fitness)
         
         # Convert the agent's path from something like 'agents/fitness/Reference.py' to an importable submodule
@@ -76,4 +83,23 @@ if __name__ == '__main__':
         print(agent.__name__)
         print(params)
         print("FITNESS: %d" % sample.avg_payoff)
+        
+        # Lastly, pack the record for this simulation run in a way that can neatly be stored in the database
+        
+        record = {'agent_name': agent_repo.name, 
+                  'agent_hash': agent_repo.hexsha, 
+                  'repo_head_hash': repo.hc.hexsha,
+                  'timestamp': datetime.datetime.now(), 
+                  'fitness': sample.avg_payoff, 
+                  'avg_T_move': sample.avg_T_move,
+                  'N_errors': sample.N_errors, 
+                  'N_runs': sample.N_runs
+                 }
+        
+        # Prefix all parameters with 'param_'
+        for (key, value) in params.iteritems():
+            record['param_'+key] = value
+        
+        collection.insert(record)
+        connection.fsync()
 
