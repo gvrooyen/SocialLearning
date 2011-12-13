@@ -7,6 +7,8 @@ import datetime
 
 from math import exp, log
 
+LOG_RANGES = False
+
 def selectParameters(agent_name, explore_ranges):
     """
     Return a set of simulation parameters for the specified agent's next fitness exploration run.
@@ -27,13 +29,13 @@ def selectParameters(agent_name, explore_ranges):
             if value[1] == None:
                 result[key] = random.choice((True, False))
             else:
-                result[key] = value[2]
+                result[key] = value[1]
                 
         elif value[0] == int:
             result[key] = random.randint(value[1], value[2])
             
         elif value[0] == float:
-            if (value[1] > 0.0) and (value[2] > 0.0) and (value[2]/value[1] > 100.0):
+            if LOG_RANGES and (value[1] > 0.0) and (value[2] > 0.0) and (value[2]/value[1] > 100.0):
                 # For a range specification like (float, 0.001, 0.4), rather sample on an log-range
                 result[key] = exp(random.uniform(log(value[1]), log(value[2])))
             else:
