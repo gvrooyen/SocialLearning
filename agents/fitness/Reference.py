@@ -36,7 +36,7 @@ def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, hist
         lastMove = historyMoves[-1]
         
         if (lastMove == OBSERVE) or (lastPayoff >= myMeanPayoff):
-            if (random.random() < 0.05) and canChooseModel:
+            if (random.random() < 0.05) and canPlayRefine:
                 # If allowed, REFINE best known act 1/20 of the time
                 return (REFINE, max(repertoire, key=repertoire.get))
             else:

@@ -147,6 +147,22 @@ if __name__ == '__main__':
                         help="The number of rounds in each simulation")
     parser.add_argument('-S', '--seed', type=str, default = ('%X' % random.getrandbits(32)),
                         help="Random number seed (a hexadecimal integer) for the simulation")
+    parser.add_argument('--mode_spatial', action='store_true', default=False,
+                        help="Simulate multiple demes")
+    parser.add_argument('--mode_cumulative', action='store_true', default=False,
+                        help="Simulate the ability to refine acts")
+    parser.add_argument('--mode_model_bias', action='store_true', default=False,
+                        help="Simulate the ability to decide who to observe")
+    parser.add_argument('--N_observe', type=int, default=None,
+                        help="Number of models to observe when --mode_model_bias is active")
+    parser.add_argument('--P_c', type=float, default=None,
+                        help="Probability that an act's payoff changes (per round)")                        
+    parser.add_argument('--P_copyFail', type=float, default=None,
+                        help="Probability that copying an act will fail")                        
+    parser.add_argument('--N_migrate', type=int, default=None,
+                        help="Number of agents that migrate demes each round when --mode_spatial is active")
+    parser.add_argument('--r_max', type=int, default=None,
+                        help="Maximum refinement gain when --mode_cumulative is active")                        
     args = parser.parse_args()
                         
     #if args.debug:
@@ -161,9 +177,25 @@ if __name__ == '__main__':
     else:
         logger.setLevel(logging.INFO)
     
+    params = {'mode_spatial': args.mode_spatial,
+              'mode_cumulative': args.mode_cumulative,
+              'mode_model_bias': args.mode_model_bias}
+    
+    if args.N_observe:
+        params['N_observe'] = args.N_observe
+    if args.P_c:
+        params['P_c'] = args.P_c
+    if args.P_copyFail:
+        params['P_copyFail'] = args.P_copyFail
+    if args.N_migrate:
+        params['N_migrate'] = args.N_migrate
+    if args.r_max:
+        params['r_max'] = args.r_max
+
     try:
         agent = __import__('agents.fitness.'+args.strategy, fromlist=['*'])
     except:
         logger.error('Could not import the specified agent module at agents/fitness/'+args.strategy)
     else:
-        fitness(agent_module='agents.fitness.'+args.strategy, iterations=args.iterations, rounds=args.rounds, seed=args.seed)
+        fitness(agent_module='agents.fitness.'+args.strategy, sim_parameters=params, iterations=args.iterations, rounds=args.rounds,
+                seed=args.seed)
