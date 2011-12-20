@@ -4,7 +4,7 @@ from moves import * #bring in standard names for moves
 
 #imports standard random number and mathematics modules; other base modules (v2.7)
 # can be imported here if needed
-import math 
+import math
 
 N_ACTS = 100
 
@@ -18,14 +18,15 @@ def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, hist
     canChooseModel, canPlayRefine, multipleDemes are boolean, indicating whether:
     observe_who will be called (i.e. model bias), REFINE is available (i.e.
     cumulative), and multiple demes (i.e. spatial) respectively.
-    
+
     This function MUST return a tuple in the form (MOVE,ACT) if MOVE is EXPLOIT or
     REFINE, or (MOVE,) if MOVE is INNOVATE or OBSERVE.
     """
 
+    pass
     return 0
 
-    
+
 def observe_who(exploiterData):
     'This function MUST return the given list of tuples, exploiterData, sorted by preference for copying.'
     'Data given for each agent are (index in this list,age,total accrued payoff,number of times copied,number of offpsring)'
