@@ -23,7 +23,6 @@ def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, hist
     REFINE, or (MOVE,) if MOVE is INNOVATE or OBSERVE.
     """
 
-    pass
     return 0
 
 
