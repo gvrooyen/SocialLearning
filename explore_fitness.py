@@ -98,6 +98,7 @@ if __name__ == '__main__':
         record = {'agent_name': agent_repo[0].name,
                   'agent_hash': agent_repo[0].hexsha,
                   'repo_head_hash': repo.hc.hexsha,
+                  'simulate_hash': (l.hexsha for l in repo.hct.blobs if l.name == 'simulate.py').next(),
                   'timestamp': datetime.datetime.now(),
                   'fitness': sample.avg_payoff,
                   'avg_T_move': sample.avg_T_move,
