@@ -410,7 +410,7 @@ class Simulate:
                     elif (not individual.repertoire.has_key(act)):
                         raise KeyError("Attempt to refine an unknown act")
                     else:
-                        if individual.refinements[act] <= R_MAX:
+                        if individual.refinements[act] < self.r_max:
                             individual.refinements[act] += 1
                         
                         # TODO: There's some repetition in history tracking -- refactor into Individual.recordHistory()
