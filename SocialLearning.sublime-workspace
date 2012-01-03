@@ -20,6 +20,22 @@
 			}
 		},
 		{
+			"file": "plottrace.py",
+			"settings":
+			{
+				"buffer_size": 685,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/gvrooyen/.config/sublime-text-2/Packages/Default/Global.sublime-settings",
+			"settings":
+			{
+				"buffer_size": 2630,
+				"line_ending": "Unix"
+			}
+		},
+		{
 			"file": "agents/fitness/Reference_noBias.py",
 			"settings":
 			{
@@ -36,10 +52,26 @@
 			}
 		},
 		{
+			"file": "trace_payoffs.py",
+			"settings":
+			{
+				"buffer_size": 904,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/home/gvrooyen/.config/sublime-text-2/Packages/Default/Base File.sublime-settings",
+			"settings":
+			{
+				"buffer_size": 6578,
+				"line_ending": "Unix"
+			}
+		},
+		{
 			"file": "explore_fitness.py",
 			"settings":
 			{
-				"buffer_size": 4163,
+				"buffer_size": 4268,
 				"line_ending": "Unix"
 			}
 		},
@@ -79,7 +111,7 @@
 			"file": "ranges.py",
 			"settings":
 			{
-				"buffer_size": 1467,
+				"buffer_size": 1454,
 				"line_ending": "Unix"
 			}
 		},
@@ -159,14 +191,17 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"\\t",
+			"payoff",
 			"agent_repo"
 		],
 		"highlight": true,
-		"in_selection": false,
+		"in_selection": true,
 		"preserve_case": false,
-		"regex": false,
+		"regex": true,
 		"replace_history":
 		[
+			"    "
 		],
 		"reverse": false,
 		"show_context": true,
@@ -177,7 +212,7 @@
 	"groups":
 	[
 		{
-			"selected": 3,
+			"selected": 2,
 			"sheets":
 			[
 				{
@@ -192,8 +227,8 @@
 						"selection":
 						[
 							[
-								3585,
-								3585
+								641,
+								641
 							]
 						],
 						"settings":
@@ -203,13 +238,66 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1035.0,
+						"translation.y": 102.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
+					"file": "plottrace.py",
+					"settings":
+					{
+						"buffer_size": 685,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								201,
+								201
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "/home/gvrooyen/.config/sublime-text-2/Packages/Default/Global.sublime-settings",
+					"settings":
+					{
+						"buffer_size": 2630,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JSON.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
 					"file": "agents/fitness/Reference_noBias.py",
 					"settings":
 					{
@@ -237,7 +325,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 2,
+					"buffer": 4,
 					"file": "fitness.py",
 					"settings":
 					{
@@ -248,8 +336,8 @@
 						"selection":
 						[
 							[
-								7311,
-								7311
+								1241,
+								1298
 							]
 						],
 						"settings":
@@ -259,25 +347,25 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2427.0,
+						"translation.y": 822.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 3,
-					"file": "explore_fitness.py",
+					"buffer": 5,
+					"file": "trace_payoffs.py",
 					"settings":
 					{
-						"buffer_size": 4163,
+						"buffer_size": 904,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								2303,
-								2303
+								904,
+								904
 							]
 						],
 						"settings":
@@ -287,13 +375,68 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 942.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 4,
+					"buffer": 6,
+					"file": "/home/gvrooyen/.config/sublime-text-2/Packages/Default/Base File.sublime-settings",
+					"settings":
+					{
+						"buffer_size": 6578,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1606,
+								1606
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JSON.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 156.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "explore_fitness.py",
+					"settings":
+					{
+						"buffer_size": 4268,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4206,
+								4267
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1003.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 8,
 					"file": "agents/fitness/LearnTillYouKnowSomething.py",
 					"settings":
 					{
@@ -321,7 +464,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 5,
+					"buffer": 9,
 					"file": "repodata.py",
 					"settings":
 					{
@@ -338,7 +481,9 @@
 						],
 						"settings":
 						{
-							"syntax": "Packages/Python/Python.tmLanguage"
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 8,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -347,7 +492,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 6,
+					"buffer": 10,
 					"file": "TODO",
 					"settings":
 					{
@@ -373,7 +518,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 7,
+					"buffer": 11,
 					"file": "simulate.py",
 					"settings":
 					{
@@ -384,8 +529,8 @@
 						"selection":
 						[
 							[
-								0,
-								0
+								6561,
+								6561
 							]
 						],
 						"settings":
@@ -395,7 +540,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 5111.0,
+						"translation.y": 2478.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -403,23 +548,23 @@
 			]
 		},
 		{
-			"selected": 2,
+			"selected": 0,
 			"sheets":
 			[
 				{
-					"buffer": 8,
+					"buffer": 12,
 					"file": "ranges.py",
 					"settings":
 					{
-						"buffer_size": 1467,
+						"buffer_size": 1454,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1467,
-								1467
+								1454,
+								1454
 							]
 						],
 						"settings":
@@ -435,7 +580,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 9,
+					"buffer": 13,
 					"file": ".gitignore",
 					"settings":
 					{
@@ -461,7 +606,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 10,
+					"buffer": 14,
 					"file": "fitnessd",
 					"settings":
 					{
@@ -487,7 +632,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 11,
+					"buffer": 15,
 					"file": "agents/fitness/Reference.py",
 					"settings":
 					{
@@ -519,7 +664,7 @@
 	],
 	"incremental_find":
 	{
-		"height": 0.0
+		"height": 32.0
 	},
 	"input":
 	{
@@ -557,7 +702,7 @@
 	"menu_visible": true,
 	"replace":
 	{
-		"height": 0.0
+		"height": 62.0
 	},
 	"save_all_on_build": true,
 	"select_file":

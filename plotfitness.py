@@ -17,6 +17,14 @@ def surfplot(dbc, agent_name, filter, colormap = 'hot'):
     P_copyFail = []
     P_c = []
     fitness = []
+
+    # We should only include samples from the database using the latest commit of Simulate.py, and using the latest
+    # commit of the agent script being plotted. First, find the latest entry of this agent script, and note the
+    # hashes.
+
+    sample = dbc.find({'agent_name': filter['agent_name']}, sort = [('timestamp', -1)], limit = 1).next()
+    filter['agent_hash'] = sample['agent_hash']
+    filter['simulate_hash'] = sample['simulate_hash']
     
     for sample in dbc.find(filter):
         P_copyFail.append(sample['param_P_copyFail'])
@@ -82,8 +90,9 @@ if __name__ == '__main__':
 
     global axes
     
-    connection = pymongo.Connection() 
+    connection = pymongo.Connection('enoch.dyndns-home.com') 
     db = connection.SocialLearning
+    db.authenticate('gvrooyen','ala+joen')
     dbc = db.fitness
     
     # Create the plotting figure and the 3D axes.
