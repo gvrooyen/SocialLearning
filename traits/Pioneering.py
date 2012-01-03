@@ -1,5 +1,6 @@
 from solegene import *
 from moves import *
+import random
 
 class Pioneering(Trait):
 
@@ -27,3 +28,12 @@ class Pioneering(Trait):
          
         else:    # This is the first round
             return (OBSERVE, )
+
+    def __pos__(self):
+        child = Pioneering()
+        if random.random() < 0.5:
+            child.N_rounds = self.N_rounds - 1
+        else:
+            child.N_rounds = self.N_rounds + 1
+        return child
+        
