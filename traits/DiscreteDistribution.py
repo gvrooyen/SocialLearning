@@ -34,9 +34,9 @@ class DiscreteDistribution(Trait):
 
         # Normalise the intervals
         if canPlayRefine:
-            interval /= interval[-1]
+            interval = [x/interval[-1] for x in interval]
         else:
-            interval /= interval[-2]
+            interval = [x/interval[-2] for x in interval]
 
         roll = random.random()
 

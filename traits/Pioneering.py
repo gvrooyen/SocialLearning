@@ -17,17 +17,18 @@ class Pioneering(Trait):
 
     def done(self, roundsAlive, repertoire, historyRounds, historyMoves, historyActs, historyPayoffs, historyDemes, currentDeme,
              canChooseModel, canPlayRefine, multipleDemes):
-        return ((roundsAlive > self.N_rounds) or     # The state has expired,
-                (historyActs[0] > -1)                # or other agents were exploiting, so this individual isn't a pioneer
+        # True if the state has expired, or if other agents were exploiting (i.e., this individual isn't a pioneer)
+        return ((roundsAlive >= self.N_rounds) or     
+                ((len(historyActs) > 0) and (historyActs[0] > -1))
                )                
     
     def move(self, roundsAlive, repertoire, historyRounds, historyMoves, historyActs, historyPayoffs, historyDemes, currentDeme,
              canChooseModel, canPlayRefine, multipleDemes):
-        if 1 < roundsAlive <= self.N_rounds:
-            return (INNOVATE, )
-         
-        else:    # This is the first round
+        if roundsAlive == 0:
             return (OBSERVE, )
+        else:
+            return (INNOVATE, )
+
 
     def __pos__(self):
         child = Pioneering()

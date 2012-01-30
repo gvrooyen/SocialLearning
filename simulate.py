@@ -116,6 +116,8 @@ class Individual:
         self.historyActs = []
         self.historyPayoffs = []
         self.historyDemes = []
+        self.historyStates = []
+        self.historyStateMatrices = []
         self.deme = 0
         self.lifetime_payoff = 0
         
@@ -339,7 +341,7 @@ class Simulate:
                                                    self.mode_cumulative, 
                                                    self.mode_spatial
                                                    )
-                
+
                 else:
                     # The test suite has provided "canned" moves for us to use
                     
@@ -360,6 +362,13 @@ class Simulate:
                     individual.historyRounds += [individual.roundsAlive+1]
                     individual.historyMoves += [INNOVATE]                                        
                     individual.historyDemes += [d]
+
+                    try:
+                        individual.historyStates.append(agent.last_state)
+                        individual.historyStateMatrices.append(agent.last_state_matrix)
+                    except:
+                        individual.historyStates.append(None)
+                        individual.historyStateMatrices.append(None)                                        
                     
                     if (len(individual.unknownActs) > 0):
                         act = self.random.sample(individual.unknownActs, 1)[0]
@@ -380,8 +389,16 @@ class Simulate:
                     # all individuals' moves to see who's EXPLOITing. To this end, we'll build
                     # up a list of the respective individuals OBSERVing and EXPLOITing this round,
                     # and resolve the moves later.
+
+                    try:
+                        individual.last_state = agent.last_state
+                        individual.last_state_matrix = agent.last_state_matrix
+                    except:
+                        individual.last_state = None
+                        individual.last_state_matrix = None
                     
                     observers += [individual]
+
                             
                 elif (move_act[0] == EXPLOIT):
                     
@@ -396,6 +413,14 @@ class Simulate:
                         individual.historyActs += [act]
                         individual.historyPayoffs += [payoff]
                         individual.historyDemes += [d]
+
+                        try:
+                            individual.historyStates.append(agent.last_state)
+                            individual.historyStateMatrices.append(agent.last_state_matrix)
+                        except:
+                            individual.historyStates.append(None)
+                            individual.historyStateMatrices.append(None)                                        
+
                         individual.lifetime_payoff += payoff
                         self.total_payoff += payoff
                         exploiters += [individual]
@@ -420,6 +445,13 @@ class Simulate:
                         individual.historyPayoffs += [self.demes[d].acts[act] 
                                                       + self.payoff_increment(individual.refinements[act])]
                         individual.historyDemes += [d]
+
+                        try:
+                            individual.historyStates.append(agent.last_state)
+                            individual.historyStateMatrices.append(agent.last_state_matrix)
+                        except:
+                            individual.historyStates.append(None)
+                            individual.historyStateMatrices.append(None)                                        
                     
                 else:
                     raise AttributeError('Unknown action %d',  move_act[0])
@@ -476,6 +508,9 @@ class Simulate:
                         observer.historyPayoffs += [copy_error(payoff + self.payoff_increment(refinement), 
                                                                self.random.random)]
                         observer.historyDemes += [d]
+                        observer.historyStates += [observer.last_state]
+                        observer.historyStateMatrices += [observer.last_state_matrix]
+
                         observer.repertoire[act] = observer.historyPayoffs[-1]
                         
                         # We rather use a set difference to remove the observed act from the list of
@@ -484,7 +519,8 @@ class Simulate:
                         # an exception (whereas a set difference is always defined).
                         
                         observer.unknownActs -= set([act])
-                        
+
+
                         exploiter.timesCopied += 1
                     else:
                         # Copy failed; keep track of the stats
@@ -496,6 +532,8 @@ class Simulate:
                         observer.historyActs += [-1]
                         observer.historyPayoffs += [-1]
                         observer.historyDemes += [d]
+                        observer.historyStates += [observer.last_state]
+                        observer.historyStateMatrices += [observer.last_state_matrix]
                     
         
         self.modify_environment()

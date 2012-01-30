@@ -14,7 +14,10 @@ render_template = \
 """# Automatically rendered agent code
 
 from moves import *
-import math 
+import math
+
+last_state = None
+last_state_matrix = None
 
 def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, historyPayoffs, historyDemes, currentDeme,
          canChooseModel, canPlayRefine, multipleDemes):
@@ -44,6 +47,7 @@ def indent(S,level):
         output += (' '*4*level) + line + '\n'
     return output
 
+
 class Genome(object):
 
     # Definition of the genome's state graph, as a list of trait-successor pairs in the following
@@ -61,7 +65,7 @@ class Genome(object):
     # the state graph.
     traits = {}
 
-    def render(self):
+    def render(self, debug = False):
 
         move = ""
         observe = "    random.shuffle(exploiterData)\n    return exploiterData\n"
@@ -102,6 +106,13 @@ class Genome(object):
                     move += "        state_matrix.append(('%s', s-1))\n" % trait
         
         move += indent(state_calc_template, 1)
+
+        # If we're rendering with debugging information, add the current state matrix to the state_trace global variable
+
+        if debug:
+            move += ("\n    global last_state, last_state_matrix\n" +
+                     "\n    last_state = state\n" +
+                     "\n    last_state_matrix = state_matrix\n")
 
         # Next, output the code for each state
 
