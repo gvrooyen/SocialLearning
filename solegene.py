@@ -6,6 +6,43 @@ from abc import *
 import random
 import inspect
 import re
+import string
+import PythonTidy
+import StringIO
+
+render_template = \
+"""# Automatically rendered agent code
+
+from moves import *
+import math 
+
+def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, historyPayoffs, historyDemes, currentDeme,
+         canChooseModel, canPlayRefine, multipleDemes):
+$move
+    
+def observe_who(exploiterData):
+$observe
+"""
+
+state_calc_template = \
+"""
+state_idx = 0
+state_found = False
+
+while not state_found:
+    state_found = (state_matrix[state_idx][1] == None)
+    if not state_found:
+        state_idx = state_matrix[state_idx][1]
+
+state = state_matrix[state_idx][0]
+
+"""
+
+def indent(S,level):
+    output = ""
+    for line in S.split('\n'):
+        output += (' '*4*level) + line + '\n'
+    return output
 
 class Genome(object):
 
@@ -24,7 +61,61 @@ class Genome(object):
     # the state graph.
     traits = {}
 
+    def render(self):
 
+        move = ""
+        observe = "    random.shuffle(exploiterData)\n    return exploiterData\n"
+
+        # Firstly, we capture the done() methods of the various traits as nested function definitions
+
+        for (trait, successors) in self.state:
+            move += "\n    def %s_done():\n" % trait
+            move += self.traits[trait].render_done()
+        
+        # It will be useful to build up a dictionary recording at which index each state occurs in the
+        # state matrix
+
+        state_map = {}
+
+        for (idx, (trait, successors)) in enumerate(self.state):
+            state_map[trait] = idx
+        
+        # Next, we need to try to find the current state of the agent. We do this by first evaluating
+        # TraitX_done() for each item in the state list. The result is used to build a new dictionary of
+        # sucessor states (with a successor of None if the particular state is not done yet). The successor
+        # list is then traced to find the current state.
+
+        move += "\n    state_matrix = []\n"
+
+        for (trait, successors) in self.state:
+            if successors == []:
+                move += "\n    state_matrix.append(('%s', None))\n" % trait
+            else:
+                move += ("\n    s = %s_done()\n" % trait +
+                          "    if s == 0:\n" +
+                          "        state_matrix.append(('%s', None))\n" % trait +
+                          "    else:\n"
+                        )
+                if len(successors) == 1:
+                    move += "        state_matrix.append(('%s', %d))\n" % (trait, state_map[successors[0]])
+                else:
+                    move += "        state_matrix.append(('%s', s-1))\n" % trait
+        
+        move += indent(state_calc_template, 1)
+
+        # Next, output the code for each state
+
+        prefix = ""
+        for (trait, successors) in self.state:
+            move += "\n\n    "+prefix+"if state == '%s':\n" % trait
+            move += self.traits[trait].render_move() 
+            prefix = "el"
+        
+        result = string.Template(render_template)
+        file_in = StringIO.StringIO(result.substitute(move = move, observe = observe))
+        file_out = StringIO.StringIO()
+        PythonTidy.tidy_up(file_in, file_out)
+        return file_out.getvalue()
 
 
 class Trait(object):

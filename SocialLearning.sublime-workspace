@@ -15,7 +15,7 @@
 			"file": "plotfitness.py",
 			"settings":
 			{
-				"buffer_size": 3601,
+				"buffer_size": 4119,
 				"line_ending": "Unix"
 			}
 		},
@@ -23,7 +23,7 @@
 			"file": "plottrace.py",
 			"settings":
 			{
-				"buffer_size": 685,
+				"buffer_size": 756,
 				"line_ending": "Unix"
 			}
 		},
@@ -127,7 +127,7 @@
 			"file": "fitnessd",
 			"settings":
 			{
-				"buffer_size": 105,
+				"buffer_size": 107,
 				"line_ending": "Unix"
 			}
 		},
@@ -220,15 +220,15 @@
 					"file": "plotfitness.py",
 					"settings":
 					{
-						"buffer_size": 3601,
+						"buffer_size": 4119,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								641,
-								641
+								0,
+								0
 							]
 						],
 						"settings":
@@ -248,15 +248,15 @@
 					"file": "plottrace.py",
 					"settings":
 					{
-						"buffer_size": 685,
+						"buffer_size": 756,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								201,
-								201
+								0,
+								0
 							]
 						],
 						"settings":
@@ -610,15 +610,15 @@
 					"file": "fitnessd",
 					"settings":
 					{
-						"buffer_size": 105,
+						"buffer_size": 107,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								105,
-								105
+								0,
+								0
 							]
 						],
 						"settings":

@@ -1,3 +1,3 @@
 #!/bin/sh
 cd /home/gvrooyen/Dropbox/devel/SocialLearning
-sudo -u gvrooyen nice python explore_fitness.py
+# sudo -u gvrooyen nice python explore_fitness.py

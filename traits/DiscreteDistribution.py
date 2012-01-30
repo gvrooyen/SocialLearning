@@ -16,10 +16,10 @@ class DiscreteDistribution(Trait):
                 'Pr': (float, 0., 1.)}
     
     def __init__(self):
-        self.Pi = 0.25
-        self.Po = 0.25
-        self.Pe = 0.25
-        self.Pr = 0.25
+        self.Pi = random.random()
+        self.Po = random.random()
+        self.Pe = random.random()
+        self.Pr = random.random()
 
     def done(self, roundsAlive, repertoire, historyRounds, historyMoves, historyActs, historyPayoffs, historyDemes, currentDeme,
              canChooseModel, canPlayRefine, multipleDemes):
