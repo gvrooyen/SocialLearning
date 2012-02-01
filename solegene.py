@@ -65,6 +65,13 @@ class Genome(object):
     # the state graph.
     traits = {}
 
+    def __init__(self):
+        """
+        The default constructor creates a genome with a randomly initialised set of traits and state
+        graph.
+        """
+        raise NotImplementedError()
+
     def render(self, debug = False):
 
         move = ""
