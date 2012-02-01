@@ -4,6 +4,14 @@
 		"selected_items":
 		[
 			[
+				"las",
+				"last_state_matrix"
+			],
+			[
+				"historyState",
+				"historyStateMatrices"
+			],
+			[
 				"add",
 				"add_argument"
 			]
@@ -12,34 +20,18 @@
 	"buffers":
 	[
 		{
-			"file": "plotfitness.py",
+			"file": "solegene.py",
 			"settings":
 			{
-				"buffer_size": 4119,
+				"buffer_size": 10052,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "plottrace.py",
+			"file": "simulate.py",
 			"settings":
 			{
-				"buffer_size": 756,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "/home/gvrooyen/.config/sublime-text-2/Packages/Default/Global.sublime-settings",
-			"settings":
-			{
-				"buffer_size": 2630,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "agents/fitness/Reference_noBias.py",
-			"settings":
-			{
-				"buffer_size": 2779,
+				"buffer_size": 25027,
 				"line_ending": "Unix"
 			}
 		},
@@ -52,90 +44,45 @@
 			}
 		},
 		{
-			"file": "trace_payoffs.py",
+			"file": "decorators.py",
 			"settings":
 			{
-				"buffer_size": 904,
+				"buffer_size": 280,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "/home/gvrooyen/.config/sublime-text-2/Packages/Default/Base File.sublime-settings",
+			"file": "traits/Pioneering.py",
 			"settings":
 			{
-				"buffer_size": 6578,
+				"buffer_size": 1295,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "explore_fitness.py",
+			"file": "moves.py",
 			"settings":
 			{
-				"buffer_size": 4268,
+				"buffer_size": 283,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "agents/fitness/LearnTillYouKnowSomething.py",
+			"file": "traits/DiscreteDistribution.py",
 			"settings":
 			{
-				"buffer_size": 1443,
+				"buffer_size": 1839,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "repodata.py",
+			"contents": "state_matrix = []\n\ns = Pioneering_done()\nif s == 0:\n    state_matrix.append(('Pioneering', None))   # None indicates that, if this state can be arrived at, it would be the current state\nelse:\n    state_matrix.append(('Pioneering', 1))      # 1 is the index in state_matrix of the successor state\n\nstate_matrix.append(('DiscreteDistribution', None))     # Since this state has no defined successor states, no check is necessary\n\nstate_idx = 0\nstate_found = False\n\nwhile not state_found:\n    state_found = (state_matrix[state_idx][1] == None)\n    if not state_found:\n        state_idx = state_matrix[state_idx][1]\n\n\n#---------\n\n#!/usr/bin/python\n# -*- coding: utf-8 -*-\n# Automatically rendered agent code\n\nfrom moves import *\nimport math\n\n\ndef move(\n    roundsAlive,\n    repertoire,\n    historyRounds,\n    historyMoves,\n    historyActs,\n    historyPayoffs,\n    historyDemes,\n    currentDeme,\n    canChooseModel,\n    canPlayRefine,\n    multipleDemes,\n    ):\n\n    def Pioneering_done():\n\n        return roundsAlive > 15 or historyActs[0] > -1  # The state has expired,\n                                                        # or other agents were exploiting, so this individual isn't a pioneer\n\n    def DiscreteDistribution_done():\n\n        return False  # Terminal trait\n\n    state_matrix = []\n\n    s = Pioneering_done()\n    if s == 0:\n        state_matrix.append(('Pioneering', None))\n    else:\n        state_matrix.append(('Pioneering', 1))\n\n    state_matrix.append(('DiscreteDistribution', None))\n\n    state_idx = 0\n    state_found = False\n\n    while not state_found:\n        state_found = state_matrix[state_idx][1] == None\n        if not state_found:\n            state_idx = state_matrix[state_idx][1]\n\n    state = state_matrix[state_idx][0]\n\n    if state == 'Pioneering':\n\n        if 1 < roundsAlive <= 15:\n            return (INNOVATE, )\n        else:\n\n                 # This is the first round\n\n            return (OBSERVE, )\n    elif state == 'DiscreteDistribution':\n\n        interval = [0.815697415609, 0.226771993853, 0.235241119503,\n                    0.0293412194311]\n\n        for i in xrange(1, 4):\n            interval[i] = interval[i - 1] + interval[i]\n\n        # Normalise the intervals\n\n        if canPlayRefine:\n            interval /= interval[-1]\n        else:\n            interval /= interval[-2]\n\n        roll = random.random()\n\n        if roll <= interval[0]:\n            return (INNOVATE, )\n        elif roll <= interval[1]:\n            return (OBSERVE, )\n        elif roll <= interval[2]:\n            return (EXPLOIT, max(repertoire, key=repertoire.get))\n        elif roll <= interval[3] and canPlayRefine:\n\n                                                        # Add the sanity check in case of rounding errors\n\n            return (REFINE, max(repertoire, key=repertoire.get))\n        else:\n\n            # Catch-all for rounding errors\n\n            return (EXPLOIT, max(repertoire, key=repertoire.get))\n\n\ndef observe_who(exploiterData):\n    random.shuffle(exploiterData)\n    return exploiterData\n\n\n",
+			"file": "tmp.py",
+			"file_size": 626,
+			"file_write_time": 1327927902000000,
 			"settings":
 			{
-				"buffer_size": 1549,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "TODO",
-			"settings":
-			{
-				"buffer_size": 132,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "simulate.py",
-			"settings":
-			{
-				"buffer_size": 23156,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "ranges.py",
-			"settings":
-			{
-				"buffer_size": 1454,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": ".gitignore",
-			"settings":
-			{
-				"buffer_size": 99,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "fitnessd",
-			"settings":
-			{
-				"buffer_size": 107,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "agents/fitness/Reference.py",
-			"settings":
-			{
-				"buffer_size": 2778,
+				"buffer_size": 3028,
 				"line_ending": "Unix"
 			}
 		}
@@ -164,11 +111,28 @@
 	},
 	"file_history":
 	[
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/tmp2.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/test.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/solegene.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/ranges.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/.gitignore",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/fitnessd",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/agents/fitness/Reference.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/plotfitness.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/plottrace.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/agents/fitness/Reference_noBias.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/fitness.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/trace_payoffs.py",
+		"/home/gvrooyen/.config/sublime-text-2/Packages/Default/Base File.sublime-settings",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/explore_fitness.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/agents/fitness/LearnTillYouKnowSomething.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/repodata.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/TODO",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/simulate.py",
 		"/home/gvrooyen/.config/sublime-text-2/Packages/Default/Global.sublime-settings",
 		"/home/gvrooyen/.config/sublime-text-2/Packages/User/Python.sublime-settings",
 		"/home/gvrooyen/.config/sublime-text-2/Packages/User/Plain text.sublime-settings",
 		"/home/gvrooyen/.config/sublime-text-2/Packages/User/Base File.sublime-settings",
-		"/home/gvrooyen/.config/sublime-text-2/Packages/Default/Base File.sublime-settings",
 		"/home/gvrooyen/.config/sublime-text-2/Packages/User/Global.sublime-settings",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/pause_explore.sh",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/resume_explore.sh",
@@ -191,12 +155,14 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"roundsAlive",
+			"agent_move",
 			"\\t",
 			"payoff",
 			"agent_repo"
 		],
 		"highlight": true,
-		"in_selection": true,
+		"in_selection": false,
 		"preserve_case": false,
 		"regex": true,
 		"replace_history":
@@ -212,23 +178,23 @@
 	"groups":
 	[
 		{
-			"selected": 2,
+			"selected": 1,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "plotfitness.py",
+					"file": "solegene.py",
 					"settings":
 					{
-						"buffer_size": 4119,
+						"buffer_size": 10052,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								4172,
+								4172
 							]
 						],
 						"settings":
@@ -238,17 +204,127 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 102.0,
+						"translation.y": 1819.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "plottrace.py",
+					"file": "simulate.py",
 					"settings":
 					{
-						"buffer_size": 756,
+						"buffer_size": 25027,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								25027,
+								25027
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 8555.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "fitness.py",
+					"settings":
+					{
+						"buffer_size": 7680,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								7324,
+								7324
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 548.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "decorators.py",
+					"settings":
+					{
+						"buffer_size": 280,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								274,
+								274
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "traits/Pioneering.py",
+					"settings":
+					{
+						"buffer_size": 1295,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1037,
+								1037
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "moves.py",
+					"settings":
+					{
+						"buffer_size": 283,
 						"regions":
 						{
 						},
@@ -270,11 +346,11 @@
 					"type": "text"
 				},
 				{
-					"buffer": 2,
-					"file": "/home/gvrooyen/.config/sublime-text-2/Packages/Default/Global.sublime-settings",
+					"buffer": 6,
+					"file": "traits/DiscreteDistribution.py",
 					"settings":
 					{
-						"buffer_size": 2630,
+						"buffer_size": 1839,
 						"regions":
 						{
 						},
@@ -287,260 +363,38 @@
 						],
 						"settings":
 						{
-							"syntax": "Packages/JavaScript/JSON.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "agents/fitness/Reference_noBias.py",
-					"settings":
-					{
-						"buffer_size": 2779,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2779,
-								2779
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 432.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "fitness.py",
-					"settings":
-					{
-						"buffer_size": 7680,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1241,
-								1298
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 822.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "trace_payoffs.py",
-					"settings":
-					{
-						"buffer_size": 904,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								904,
-								904
-							]
-						],
-						"settings":
-						{
 							"syntax": "Packages/Python/Python.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "/home/gvrooyen/.config/sublime-text-2/Packages/Default/Base File.sublime-settings",
-					"settings":
-					{
-						"buffer_size": 6578,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1606,
-								1606
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JSON.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 156.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 7,
-					"file": "explore_fitness.py",
+					"file": "tmp.py",
 					"settings":
 					{
-						"buffer_size": 4268,
+						"buffer_size": 3028,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								4206,
-								4267
+								1901,
+								1901
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
+							"syntax": "Packages/Python/Python.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 1003.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 8,
-					"file": "agents/fitness/LearnTillYouKnowSomething.py",
-					"settings":
-					{
-						"buffer_size": 1443,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1101,
-								1101
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 9,
-					"file": "repodata.py",
-					"settings":
-					{
-						"buffer_size": 1549,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1126,
-								1126
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 8,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 10,
-					"file": "TODO",
-					"settings":
-					{
-						"buffer_size": 132,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								132,
-								132
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 11,
-					"file": "simulate.py",
-					"settings":
-					{
-						"buffer_size": 23156,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								6561,
-								6561
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 2478.0,
+						"translation.y": 867.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -548,117 +402,8 @@
 			]
 		},
 		{
-			"selected": 0,
 			"sheets":
 			[
-				{
-					"buffer": 12,
-					"file": "ranges.py",
-					"settings":
-					{
-						"buffer_size": 1454,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1454,
-								1454
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 6,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 13,
-					"file": ".gitignore",
-					"settings":
-					{
-						"buffer_size": 99,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								11,
-								11
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 14,
-					"file": "fitnessd",
-					"settings":
-					{
-						"buffer_size": 107,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/ShellScript/Shell-Unix-Generic.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 15,
-					"file": "agents/fitness/Reference.py",
-					"settings":
-					{
-						"buffer_size": 2778,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				}
 			]
 		}
 	],
