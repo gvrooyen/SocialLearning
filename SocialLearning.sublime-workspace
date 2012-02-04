@@ -23,7 +23,7 @@
 			"file": "solegene.py",
 			"settings":
 			{
-				"buffer_size": 10052,
+				"buffer_size": 11480,
 				"line_ending": "Unix"
 			}
 		},
@@ -40,14 +40,6 @@
 			"settings":
 			{
 				"buffer_size": 7680,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "decorators.py",
-			"settings":
-			{
-				"buffer_size": 280,
 				"line_ending": "Unix"
 			}
 		},
@@ -111,6 +103,7 @@
 	},
 	"file_history":
 	[
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/decorators.py",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/tmp2.py",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/test.py",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/solegene.py",
@@ -178,7 +171,7 @@
 	"groups":
 	[
 		{
-			"selected": 1,
+			"selected": 3,
 			"sheets":
 			[
 				{
@@ -186,15 +179,15 @@
 					"file": "solegene.py",
 					"settings":
 					{
-						"buffer_size": 10052,
+						"buffer_size": 11480,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								4172,
-								4172
+								3075,
+								3075
 							]
 						],
 						"settings":
@@ -204,7 +197,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1819.0,
+						"translation.y": 2550.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -232,7 +225,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 8555.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -267,32 +260,6 @@
 				},
 				{
 					"buffer": 3,
-					"file": "decorators.py",
-					"settings":
-					{
-						"buffer_size": 280,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								274,
-								274
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 4,
 					"file": "traits/Pioneering.py",
 					"settings":
 					{
@@ -320,7 +287,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 5,
+					"buffer": 4,
 					"file": "moves.py",
 					"settings":
 					{
@@ -346,7 +313,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 6,
+					"buffer": 5,
 					"file": "traits/DiscreteDistribution.py",
 					"settings":
 					{
@@ -374,7 +341,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 7,
+					"buffer": 6,
 					"file": "tmp.py",
 					"settings":
 					{
@@ -391,7 +358,9 @@
 						],
 						"settings":
 						{
-							"syntax": "Packages/Python/Python.tmLanguage"
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
 						"translation.y": 867.0,
@@ -435,7 +404,7 @@
 		"cols":
 		[
 			0.0,
-			0.691145833334,
+			0.663020833334,
 			1.0
 		],
 		"rows":

@@ -9,6 +9,8 @@ import re
 import string
 import PythonTidy
 import StringIO
+import traits
+import pkgutil
 
 render_template = \
 """# Automatically rendered agent code
@@ -58,6 +60,9 @@ class Genome(object):
     #   ]
     state = []
 
+    # Maximum number of states allowed in a state graph (places a cap on bloat)
+    MAX_STATES = 3
+
     # Traits (genes) associated with this genome. These are stored as a class-instance dictionary,
     # with classes as keys and specific instances as values. Some traits may be expressed (i.e. in
     # the genome's state graph) whereas others may be recessive and only occur in this dictionary.
@@ -70,7 +75,101 @@ class Genome(object):
         The default constructor creates a genome with a randomly initialised set of traits and state
         graph.
         """
-        raise NotImplementedError()
+        # The initialisation strategy is to populate the self.traits dictionary with a full complement
+        # of all available traits, initialised with randomized evolvables (sampled on a uniform
+        # distribution over their specified ranges). From these traits, between 1 and MAX_STATES
+        # traits are then chosen to populate the state graph (self.state). Next, the state graph
+        # is ordered in such a way that trait constraints are observed (e.g. 'initial' or 'terminal'),
+        # possible discarding states if all constraints cannot be satisfied. Lastly, edges are connected
+        # so that, if each state only has a single successor, the nodes (traits) are traversed linearly
+        # (e.g. A -> B -> C). If some states have more than one successor, one successor is always chosen
+        # randomly to linearly proceed to the next state, so that there is always an A -> B -> C progression
+        # along some path in the graph. For other successors, the next state is chosen randomly (possibly
+        # including the current state -- note that this would typically let a non-terminal state obtain
+        # a terminal condition).
+
+        # Import available traits one by one, and add them to the self.traits dictionary
+
+        package = traits
+        prefix = package.__name__ + '.'
+
+        for importer, modname, ispkg in pkgutil.iter_modules(package.__path__, prefix):
+            T = __import__(modname, fromlist="*")
+            T_name = T.__name__.split('.')[-1]      # The trait's unqualified name
+            # A trait's default constructor handles the random initialisation
+            self.traits[T_name] = getattr(T, T_name)()
+        
+        available_traits = self.traits.keys()
+        initial_state = None
+        terminal_states = []
+        interem_states = []
+
+        for i in xrange(0, random.randint(1,self.MAX_STATES)):
+            if len(available_traits) == 0:
+                break
+            new_trait_name = random.choice(available_traits)
+            available_traits.remove(new_trait_name)
+            new_trait = self.traits[new_trait_name]
+
+            if 'initial' in new_trait.constraints:
+                # This possibly replaces any prior initial state that was sampled
+                initial_state = new_trait
+                if 'terminal' in new_trait.constraints:
+                    # This state is constrained to be both initial and terminal, i.e. it can only be
+                    # expressed as a solo state. Reset anything that's been selected so far, and
+                    # exit the loop.
+                    terminal_states = []
+                    interem_states = []
+                    break
+            
+            elif 'terminal' in new_trait.constraints:
+                terminal_states.append(new_trait)
+            
+            else:
+                interem_states.append(new_trait)
+        
+        # Next, add the available states to the state graph, initially with empty successor lists
+
+        if initial_state != None:
+            self.state = [ (initial_state.__class__.__name__, []) ]
+        elif len(interem_states) > 0:
+            new_state = random.choice(interem_states)
+            interem_states.remove(new_state)
+            self.state = [ (new_state.__class__.__name__, []) ]
+        elif len(terminal_states) > 0:
+            new_state = random.choice(terminal_states)
+            terminal_states.remove(new_state)
+            self.state = [ (new_state.__class__.__name__, []) ]
+        else:
+            raise ImportError("No valid traits found")
+        
+        # We add the interem states to the state graph next, followed by the terminal states
+
+        for state in interem_states:
+            self.state.append((state.__class__.__name__, []))
+        for state in terminal_states:
+            self.state.append((state.__class__.__name__, []))
+        
+        # For each output transition allowed by a state's associated trait, add a random state
+        # as destination
+
+        # TODO: Add support for valid_successors and valid_predecessors
+
+        # In the current implementation, each state may only be visited once
+
+        N = len(self.state)
+        states_left_to_visit = range(1,N)
+
+        for n in xrange(0, N-1):
+            if len(states_left_to_visit) == 0:
+                break
+            for i in xrange(0, self.traits[self.state[n][0]].N_transitions):
+                if len(states_left_to_visit) == 0:
+                    break
+                next_state = random.choice(states_left_to_visit)
+                states_left_to_visit.remove(next_state)
+                self.state[n][1].append(next_state)
+
 
     def render(self, debug = False):
 
@@ -142,6 +241,13 @@ class Trait(object):
     @property
     def constraints(self):
         return ()
+    
+    @property
+    def N_transitions(self):
+        """
+        Number of output transitions of a state corresponding to this trait (default 1)
+        """
+        return 1
 
     @property
     def eNoise(self):
