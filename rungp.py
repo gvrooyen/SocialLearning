@@ -1,5 +1,5 @@
 import solegene
-reload(solegene)
+import cloud
 
 G = solegene.Genome()
 G.state

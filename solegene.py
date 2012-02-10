@@ -450,17 +450,23 @@ class Generation(object):
             genome.simulation = simulate.Simulate(**self.sim_parameters)
             genome.simulation.agent_move = genome.agent_module.move
             genome.simulation.agent_observe_who = genome.agent_module.observe_who
+        
+        jid = {}
+
+        def job_callback(job):
+            jid[job].simulation = cloud.result(job)
+            print('Job %d completed with payoff %d.' % (job, jid[job].simulation.total_payoff))
        
         while len(self.population) > self.BROOD_SIZE:
-            jid = []
             for genome in self.population:
-                jid.append(cloud.call(genome.simulation.run, N_rounds = self.D_ROUNDS, return_self = True))
+                jid[cloud.call(genome.simulation.run, N_rounds = self.D_ROUNDS, return_self = True, 
+                    _callback = [job_callback])] = genome
             
             # Wait for all tasks to finish
             cloud.join(jid)
 
-            for (job, genome) in zip(jid, self.population):
-                genome.simulation = cloud.result(job)
+            # for (job, genome) in zip(jid, self.population):
+            #     genome.simulation = cloud.result(job)
             
             self.population.sort(reverse=True, key=lambda genome: genome.simulation.total_payoff)
             print([genome.simulation.total_payoff for genome in self.population])
