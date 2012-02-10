@@ -4,6 +4,30 @@
 		"selected_items":
 		[
 			[
+				"Not",
+				"NotImplementedError"
+			],
+			[
+				"code",
+				"code_hash"
+			],
+			[
+				"states",
+				"states_left_to_visit"
+			],
+			[
+				"interem",
+				"interem_states"
+			],
+			[
+				"term",
+				"terminal_states"
+			],
+			[
+				"av",
+				"available_traits"
+			],
+			[
 				"las",
 				"last_state_matrix"
 			],
@@ -23,7 +47,7 @@
 			"file": "solegene.py",
 			"settings":
 			{
-				"buffer_size": 11480,
+				"buffer_size": 18262,
 				"line_ending": "Unix"
 			}
 		},
@@ -31,7 +55,7 @@
 			"file": "simulate.py",
 			"settings":
 			{
-				"buffer_size": 25027,
+				"buffer_size": 25181,
 				"line_ending": "Unix"
 			}
 		},
@@ -171,7 +195,7 @@
 	"groups":
 	[
 		{
-			"selected": 3,
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -179,43 +203,24 @@
 					"file": "solegene.py",
 					"settings":
 					{
-						"buffer_size": 11480,
+						"buffer_size": 18262,
 						"regions":
 						{
+							"bookmarks":
+							{
+								"flags": 144,
+								"icon": "bookmark",
+								"regions":
+								[
+								],
+								"scope": "bookmarks"
+							}
 						},
 						"selection":
 						[
 							[
-								3075,
-								3075
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 2550.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "simulate.py",
-					"settings":
-					{
-						"buffer_size": 25027,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								25027,
-								25027
+								307,
+								307
 							]
 						],
 						"settings":
@@ -226,6 +231,34 @@
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "simulate.py",
+					"settings":
+					{
+						"buffer_size": 25181,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								23645,
+								23580
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 8776.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -242,8 +275,8 @@
 						"selection":
 						[
 							[
-								7324,
-								7324
+								1702,
+								1746
 							]
 						],
 						"settings":
@@ -253,7 +286,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 548.0,
+						"translation.y": 561.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"

@@ -11,12 +11,18 @@ import PythonTidy
 import StringIO
 import traits
 import pkgutil
+import md5
+import simulate
+
+# import cloud.mp as cloud    # Simulate cloud processing locally
+import cloud
 
 render_template = \
 """# Automatically rendered agent code
 
 from moves import *
 import math
+import random
 
 last_state = None
 last_state_matrix = None
@@ -37,7 +43,11 @@ state_found = False
 while not state_found:
     state_found = (state_matrix[state_idx][1] == None)
     if not state_found:
-        state_idx = state_matrix[state_idx][1]
+        if state_idx == state_matrix[state_idx][1]:
+            # We're in a state loop; bail out
+            state_found = True
+        else:
+            state_idx = state_matrix[state_idx][1]
 
 state = state_matrix[state_idx][0]
 
@@ -69,6 +79,17 @@ class Genome(object):
     # During crossover or mutation, however, all genes are considered, not only those expressed in
     # the state graph.
     traits = {}
+
+    # If a genome's code has been rendered, this will contain the hash and agent module name and path
+    code_hash = None
+    agent_name = None
+    agent_path = None
+
+    # Agent module, if rendered and imported
+    agent_module = None
+
+    # Current simulation for this genome, if active
+    simulation = None
 
     def __init__(self):
         """
@@ -158,7 +179,7 @@ class Genome(object):
         # In the current implementation, each state may only be visited once
 
         N = len(self.state)
-        states_left_to_visit = range(1,N)
+        states_left_to_visit = [state_name for (state_name, successors) in self.state]
 
         for n in xrange(0, N-1):
             if len(states_left_to_visit) == 0:
@@ -389,3 +410,64 @@ class Trait(object):
             S = re.sub('self.'+p, str(getattr(self, p)), S)
 
         return S
+
+class Generation(object):
+
+    POPULATION_SIZE = 100       # Population size of each GP generation
+    DECIMATION_PERCENT = 0.2    # Weakest % of generation to decimate after D_ROUNDS rounds
+    BROOD_SIZE = 20             # Suviving number of individuals that will be used to breed next generation
+    D_ROUNDS = 1000             # Number of rounds to simulate in delta-estimation
+    DEBUG = True
+
+    population = []
+    sim_parameters = {}
+
+    def __init__(self, sim_parameters = {}):
+        # TODO: Add support for parameter ranges
+        self.sim_parameters = sim_parameters
+        for i in xrange(0, self.POPULATION_SIZE):
+            self.population.append(Genome())
+    
+
+    def step(self):
+        """
+        Run fitness tests for the current generation, and evolve the next generation.
+        """
+
+        # Firstly, render code for all the genomes in the current population. Each genome owns its own
+        # simulation object, because we want to interleave the simulations, running D_ROUNDS of simulation
+        # rounds for all genomes, and killing off the weakest until BROOD_SIZE genomes remain.
+
+        for genome in self.population:
+            code = genome.render(debug = self.DEBUG)
+            genome.code_hash = md5.md5(code).hexdigest()
+            genome.agent_name = 'agent_' + genome.code_hash
+            genome.agent_path = 'agents/rendered/' + genome.agent_name + '.py'
+            f = open(genome.agent_path, 'w')
+            f.write(code)
+            f.close()
+            genome.agent_module = __import__('agents.rendered.'+genome.agent_name, fromlist=['*'])
+            genome.simulation = simulate.Simulate(**self.sim_parameters)
+            genome.simulation.agent_move = genome.agent_module.move
+            genome.simulation.agent_observe_who = genome.agent_module.observe_who
+       
+        while len(self.population) > self.BROOD_SIZE:
+            jid = []
+            for genome in self.population:
+                jid.append(cloud.call(genome.simulation.run, N_rounds = self.D_ROUNDS, return_self = True))
+            
+            # Wait for all tasks to finish
+            cloud.join(jid)
+
+            for (job, genome) in zip(jid, self.population):
+                genome.simulation = cloud.result(job)
+            
+            self.population.sort(reverse=True, key=lambda genome: genome.simulation.total_payoff)
+            print([genome.simulation.total_payoff for genome in self.population])
+
+            new_N = int(round(len(self.population) * (1. - self.DECIMATION_PERCENT)))
+            if new_N < self.BROOD_SIZE:
+                new_N = self.BROOD_SIZE
+            
+            # Let the fittest survive
+            self.population = self.population[0:new_N]

@@ -179,7 +179,8 @@ class Simulate:
         self.r_max = r_max
         
         # We use the agent script's methods as default. This allows the owner of a Simulate object to override the
-        # move() and observe_who() behavior (for example, this is quite useful during unit testing).        
+        # move() and observe_who() behavior (for example, this is quite useful during unit testing and genetic
+        # programming).        
         self.agent_move = agent.move
         self.agent_observe_who = agent.observe_who
         
@@ -543,11 +544,16 @@ class Simulate:
         if (self.mode_spatial):
             self.migrate()
     
-    def run(self, silent_fail = False, seed = None):
+    def run(self, silent_fail = False, seed = None, N_rounds = None, return_self = False):
+        if N_rounds:
+            N = N_rounds
+        else:
+            N = self.N_rounds
+                        
         if seed != None:            
             self.random = random.Random(seed)
         try:
-            for i in range(0, self.N_rounds):
+            for i in range(0, N):
                 self.step()
         except:
             # To make run() multiprocessing-safe, it should raise no exceptions, but rather fail silently,
@@ -556,3 +562,6 @@ class Simulate:
             self.exception = traceback.format_exc()
             if not silent_fail:
                 raise
+        
+        if return_self:
+            return self

@@ -37,6 +37,10 @@ class DiscreteDistribution(Trait):
             interval = [x/interval[-1] for x in interval]
         else:
             interval = [x/interval[-2] for x in interval]
+        
+        # If the repertoire is empty, only Pi or Po should be chosen:
+        if len(repertoire) == 0:
+            interval = [x/interval[-3] for x in interval]
 
         roll = random.random()
 
