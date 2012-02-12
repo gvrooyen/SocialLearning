@@ -13,9 +13,11 @@ import traits
 import pkgutil
 import md5
 import simulate
+import walkerrandom
+import pygraphviz as dot
 
-# import cloud.mp as cloud    # Simulate cloud processing locally
-import cloud
+import cloud.mp as cloud    # Simulate cloud processing locally
+# import cloud
 
 render_template = \
 """# Automatically rendered agent code
@@ -255,6 +257,78 @@ class Genome(object):
         PythonTidy.tidy_up(file_in, file_out)
         return file_out.getvalue()
 
+    
+    def render_state(self):
+        """
+        Render the current state as an Graphviz AGraph() object.
+        """
+        G = dot.AGraph(strict=False, directed=True)
+        for state in self.state:
+            G.add_node(state[0])
+            for edge in state[1]:
+                G.add_edge(state[0],edge)
+        return G
+
+
+    def __add__(self, other):
+        """
+        Perform crossover between two individuals.
+
+        Firstly, crossover is performed between all the individuals' traits. If one has a trait the other
+        doesn't have, a mutated version is passed on to the child.
+
+        Secondly, the state graphs are crossed over by selecting random crossover points, and joining the
+        respective left and right graphs in such a way that a valid new graph is formed.
+        """
+
+        # Create a new child. Note that the default constructor initialises the child with random traits,
+        # which allows it to discover traits that may not have been visible to its parents.
+        child = Genome()
+
+        # Pass over the parents' shared traits first
+        for key in set(self.traits.keys()).intersection(other.traits.keys()):
+            child.traits[key] = self.traits[key] + other.traits[key]
+        
+        # Pass over mutated versions of traits existing only in this parent
+        for key in set(self.traits.keys()) - set(other.traits.keys()):
+            child.traits[key] = +self.traits[key]
+        
+        # Pass over mutated versions of traits existing only in the other parent
+        for key in set(other.traits.keys()) - set(self.traits.keys()):
+            child.traits[key] = +other.traits[key]
+
+        # Create the parent subgraphs by selecting random crossover points
+        P1 = self.state
+        P2 = other.state
+
+        P1 = P1[0:random.randint(1,len(P1))]
+        P2 = P2[random.randint(0,len(P2)-1):len(P2)]
+
+        print P1
+        print P2
+
+        # We'll ignore any edges pointing into the void for now. Let's join the two graphs first, and then
+        # patch up any missing links. But first, we need to remove any duplicate states in the two graphs.
+
+        for t in set([x[0] for x in P1]).intersection([x[0] for x in P2]):
+            if random.random() < 0.5:
+                # Remove this state from the first parent
+                P1 = [x for x in P1 if x[0] != t]
+            else:
+                # Remove this state from the second parent
+                P2 = [x for x in P2 if x[0] != t]
+        
+        child.state = P1 + P2
+
+        valid_states = [x[0] for x in child.state]
+
+        for (idx_s,s) in enumerate(child.state):
+            for (idx_target,target) in enumerate(s[1]):
+                if target not in valid_states:
+                    child.state[idx_s][1][idx_target] = child.state[random.randint(0,len(child.state)-1)][0]
+
+        return child
+
 
 class Trait(object):
     __metaclass__ = ABCMeta
@@ -417,7 +491,9 @@ class Generation(object):
     DECIMATION_PERCENT = 0.2    # Weakest % of generation to decimate after D_ROUNDS rounds
     BROOD_SIZE = 20             # Suviving number of individuals that will be used to breed next generation
     D_ROUNDS = 1000             # Number of rounds to simulate in delta-estimation
-    DEBUG = True
+    DEBUG = False
+    P_CROSSOVER = 0.9
+    P_MUTATION = 0.01
 
     population = []
     sim_parameters = {}
@@ -460,7 +536,7 @@ class Generation(object):
         while len(self.population) > self.BROOD_SIZE:
             for genome in self.population:
                 jid[cloud.call(genome.simulation.run, N_rounds = self.D_ROUNDS, return_self = True, 
-                    _callback = [job_callback])] = genome
+                    _callback = [job_callback], _fast_serialization = 0, _type='c1')] = genome
             
             # Wait for all tasks to finish
             cloud.join(jid)
@@ -477,3 +553,26 @@ class Generation(object):
             
             # Let the fittest survive
             self.population = self.population[0:new_N]
+
+        # Intialise the next generation
+        next_population = []
+
+        # Create a random parent generator, weighted by individuals' fitness
+        parent = walkerrandom.Walkerrandom([genome.simulation.total_payoff for genome in self.population],
+                                           self.population)
+
+        while len(next_population) < POPULATION_SIZE:
+            p1 = parent.random()
+            r = random.random()
+            if r < P_CROSSOVER:
+                # Perform crossover mutation. Firstly, pick a second parent.
+                p2 = parent.random()
+                # Add the crossover of the two parents to the next generation.
+                next_population.append(p1+p2)
+            elif r < (P_CROSSOVER + P_MUTATION):
+                # Add a mutated version of the current individual to the next generation
+                next_population.append(+p1)
+            else:
+                # Let the chosen individual be reproduced identically to the next generation
+                next_population.append(p1)
+

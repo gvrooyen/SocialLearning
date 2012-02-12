@@ -87,18 +87,7 @@
 			"file": "traits/DiscreteDistribution.py",
 			"settings":
 			{
-				"buffer_size": 1839,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"contents": "state_matrix = []\n\ns = Pioneering_done()\nif s == 0:\n    state_matrix.append(('Pioneering', None))   # None indicates that, if this state can be arrived at, it would be the current state\nelse:\n    state_matrix.append(('Pioneering', 1))      # 1 is the index in state_matrix of the successor state\n\nstate_matrix.append(('DiscreteDistribution', None))     # Since this state has no defined successor states, no check is necessary\n\nstate_idx = 0\nstate_found = False\n\nwhile not state_found:\n    state_found = (state_matrix[state_idx][1] == None)\n    if not state_found:\n        state_idx = state_matrix[state_idx][1]\n\n\n#---------\n\n#!/usr/bin/python\n# -*- coding: utf-8 -*-\n# Automatically rendered agent code\n\nfrom moves import *\nimport math\n\n\ndef move(\n    roundsAlive,\n    repertoire,\n    historyRounds,\n    historyMoves,\n    historyActs,\n    historyPayoffs,\n    historyDemes,\n    currentDeme,\n    canChooseModel,\n    canPlayRefine,\n    multipleDemes,\n    ):\n\n    def Pioneering_done():\n\n        return roundsAlive > 15 or historyActs[0] > -1  # The state has expired,\n                                                        # or other agents were exploiting, so this individual isn't a pioneer\n\n    def DiscreteDistribution_done():\n\n        return False  # Terminal trait\n\n    state_matrix = []\n\n    s = Pioneering_done()\n    if s == 0:\n        state_matrix.append(('Pioneering', None))\n    else:\n        state_matrix.append(('Pioneering', 1))\n\n    state_matrix.append(('DiscreteDistribution', None))\n\n    state_idx = 0\n    state_found = False\n\n    while not state_found:\n        state_found = state_matrix[state_idx][1] == None\n        if not state_found:\n            state_idx = state_matrix[state_idx][1]\n\n    state = state_matrix[state_idx][0]\n\n    if state == 'Pioneering':\n\n        if 1 < roundsAlive <= 15:\n            return (INNOVATE, )\n        else:\n\n                 # This is the first round\n\n            return (OBSERVE, )\n    elif state == 'DiscreteDistribution':\n\n        interval = [0.815697415609, 0.226771993853, 0.235241119503,\n                    0.0293412194311]\n\n        for i in xrange(1, 4):\n            interval[i] = interval[i - 1] + interval[i]\n\n        # Normalise the intervals\n\n        if canPlayRefine:\n            interval /= interval[-1]\n        else:\n            interval /= interval[-2]\n\n        roll = random.random()\n\n        if roll <= interval[0]:\n            return (INNOVATE, )\n        elif roll <= interval[1]:\n            return (OBSERVE, )\n        elif roll <= interval[2]:\n            return (EXPLOIT, max(repertoire, key=repertoire.get))\n        elif roll <= interval[3] and canPlayRefine:\n\n                                                        # Add the sanity check in case of rounding errors\n\n            return (REFINE, max(repertoire, key=repertoire.get))\n        else:\n\n            # Catch-all for rounding errors\n\n            return (EXPLOIT, max(repertoire, key=repertoire.get))\n\n\ndef observe_who(exploiterData):\n    random.shuffle(exploiterData)\n    return exploiterData\n\n\n",
-			"file": "tmp.py",
-			"file_size": 626,
-			"file_write_time": 1327927902000000,
-			"settings":
-			{
-				"buffer_size": 3028,
+				"buffer_size": 2009,
 				"line_ending": "Unix"
 			}
 		}
@@ -127,6 +116,7 @@
 	},
 	"file_history":
 	[
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/tmp.py",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/decorators.py",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/tmp2.py",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/test.py",
@@ -195,7 +185,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 5,
 			"sheets":
 			[
 				{
@@ -350,15 +340,15 @@
 					"file": "traits/DiscreteDistribution.py",
 					"settings":
 					{
-						"buffer_size": 1839,
+						"buffer_size": 2009,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								320,
+								320
 							]
 						],
 						"settings":
@@ -369,34 +359,6 @@
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "tmp.py",
-					"settings":
-					{
-						"buffer_size": 3028,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1901,
-								1901
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 867.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
