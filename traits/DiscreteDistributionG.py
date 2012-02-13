@@ -2,10 +2,11 @@ from solegene import *
 from moves import *
 import random
 
-class DiscreteDistribution(Trait):
+class DiscreteDistributionG(Trait):
 
     """
-    Randomly play acceptable moves, over a discrete distribution of which the weights can evolve.
+    This trait is identical to the DiscreteDistribution trait. This duplicate allows a parallel version
+    of the trait to evolve separately, and both versions can occur simultaneously in the state graph.
     """
 
     @property

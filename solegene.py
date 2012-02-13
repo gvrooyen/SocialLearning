@@ -15,9 +15,12 @@ import md5
 import simulate
 import walkerrandom
 import pygraphviz as dot
+from agents.rendered.exceptions import *
 
 import cloud.mp as cloud    # Simulate cloud processing locally
 # import cloud
+
+MAX_STATE_RECURSION = 16
 
 render_template = \
 """# Automatically rendered agent code
@@ -39,21 +42,22 @@ $observe
 
 state_calc_template = \
 """
-state_idx = 0
-state_found = False
+def traverse_states(state_matrix, state_idx = 0, entry_round = 0, recursion_depth = 0):
+    if recursion_depth > %d:
+        raise AgentError("Maximum state graph recursion reached (most likely due to an infinite state graph loop")
+    done = state_matrix[state_idx][1](entry_round)
+    if not done:
+        return state_matrix[state_idx][0]
+    else:
+        # Traverse the state graph further by recursion. done[0] gives the number (1,2,3...) of the currently
+        # considered state's output condition. state_matrix[state_idx][2][done[0]-1] translates into the
+        # corresponding output state's index in state_matrix. done[1] is the round at which that next step
+        # started running.
+        return traverse_states(state_matrix, state_matrix[state_idx][2][done[0]-1], done[1], recursion_depth+1)
 
-while not state_found:
-    state_found = (state_matrix[state_idx][1] == None)
-    if not state_found:
-        if state_idx == state_matrix[state_idx][1]:
-            # We're in a state loop; bail out
-            state_found = True
-        else:
-            state_idx = state_matrix[state_idx][1]
+state = traverse_states(state_matrix)
 
-state = state_matrix[state_idx][0]
-
-"""
+""" % MAX_STATE_RECURSION
 
 def indent(S,level):
     output = ""
@@ -202,7 +206,7 @@ class Genome(object):
         # Firstly, we capture the done() methods of the various traits as nested function definitions
 
         for (trait, successors) in self.state:
-            move += "\n    def %s_done():\n" % trait
+            move += "\n    def %s_done(entryRound):\n" % trait
             move += self.traits[trait].render_done()
         
         # It will be useful to build up a dictionary recording at which index each state occurs in the
@@ -213,26 +217,22 @@ class Genome(object):
         for (idx, (trait, successors)) in enumerate(self.state):
             state_map[trait] = idx
         
-        # Next, we need to try to find the current state of the agent. We do this by first evaluating
-        # TraitX_done() for each item in the state list. The result is used to build a new dictionary of
-        # sucessor states (with a successor of None if the particular state is not done yet). The successor
-        # list is then traced to find the current state.
+        # Next, we need to try and find the current state of the agent. We do this by first building up a
+        # state matrix with the following form:
+        #
+        #       state_matrix = [('Pioneering', Pioneering_done, [1]),
+        #                       ('DiscreteDistribution', DiscreteDistribution_done, [])]
+        #
+        # Where each row is a possible state (with an unique state name), and is represented by a 3-tuple
+        # consisting of the state's name, the state's _done() function, and a list that provides a mapping
+        # between a state's M possible output conditions (1,2,3,...; note that this is 1-indexed) and the
+        # corresponding output state's row in state_matrix.
 
         move += "\n    state_matrix = []\n"
 
         for (trait, successors) in self.state:
-            if successors == []:
-                move += "\n    state_matrix.append(('%s', None))\n" % trait
-            else:
-                move += ("\n    s = %s_done()\n" % trait +
-                          "    if s == 0:\n" +
-                          "        state_matrix.append(('%s', None))\n" % trait +
-                          "    else:\n"
-                        )
-                if len(successors) == 1:
-                    move += "        state_matrix.append(('%s', %d))\n" % (trait, state_map[successors[0]])
-                else:
-                    move += "        state_matrix.append(('%s', s-1))\n" % trait
+            move += "\n    state_matrix.append(('%s', %s_done, %s))\n" % (trait, trait,
+                [state_map[t] for t in successors])
         
         move += indent(state_calc_template, 1)
 
@@ -250,6 +250,9 @@ class Genome(object):
             move += "\n\n    "+prefix+"if state == '%s':\n" % trait
             move += self.traits[trait].render_move() 
             prefix = "el"
+        
+        move += "\n\n    else:\n"
+        move +=     "        raise AgentError('No such state: %s' % state)\n"
         
         result = string.Template(render_template)
         file_in = StringIO.StringIO(result.substitute(move = move, observe = observe))
@@ -362,16 +365,22 @@ class Trait(object):
         return '*'
     
     @abstractmethod
-    def done(self, roundsAlive, repertoire, historyRounds, historyMoves, historyActs, historyPayoffs, historyDemes, currentDeme,
+    def done(self, entryRound,
+             roundsAlive, repertoire, historyRounds, historyMoves, historyActs, historyPayoffs, historyDemes, currentDeme,
              canChooseModel, canPlayRefine, multipleDemes):
         """
-        Return True when the state associated with this trait has ended.
+        Return False/0 if the state associated with this trait is still active.
 
-        Alternatively, if the state has multiple exit conditions, return the number of the exit condition. In this
-        case, 0 corresponds to the current state (i.e. it has not ended yet), 1 to the first exit condition, 2 to
-        the second exit condition, etc.
+        The function has access to all the variables typically associated with an agent's move() function. Additionally,
+        its first parameter is entryRound, the round of the agent's life when the state started (i.e. took its first
+        move).
 
-        Note that the boolean/integer return values are effectively interchangeable, since 0 == False and 1 == True.
+        If the state has ended, the function returns a tuple (n,r) with n corresponding to the number of the
+        exit condition (1,2,3,...; 0 represents the current state itself) and r corresponding to the number
+        of rounds that have elapsed in the agent's life after the state has ended. An ending state's r is the successor
+        state's entryRound.
+
+        Note that the return values can be treated as booleans, since 0 == False and 1 == True.
         """
         pass    
     

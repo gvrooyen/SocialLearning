@@ -2,15 +2,23 @@ from solegene import *
 from moves import *
 import random
 
-class DiscreteDistribution(Trait):
+class Specialisation(Trait):
 
     """
-    Randomly play acceptable moves, over a discrete distribution of which the weights can evolve.
+    This is a one-move state that randomly plays a single move from the repertoire. It then has one of four output states
+    based on the move played. The choice of move is played from an evolvable distribution.
     """
 
     @property
     def constraints(self):
         return ('terminal')
+
+    @property
+    def N_transitions(self):
+        """
+        Number of output transitions of a state corresponding to this trait (default 1)
+        """
+        return 4
 
     @property
     def evolvables(self):
@@ -28,10 +36,25 @@ class DiscreteDistribution(Trait):
     def done(self, entryRound,
              roundsAlive, repertoire, historyRounds, historyMoves, historyActs, historyPayoffs, historyDemes, currentDeme,
              canChooseModel, canPlayRefine, multipleDemes):
-        return False    # Terminal trait
+        if roundsAlive == entryRound:
+            # We haven't made a move yet
+            return False
+        else:
+            # Inspect the move, and return the corresponding exit condition. Note that moves are defined on the range [-1,2],
+            # whereas valid exit conditions start numbering at 1. Therefore, add 2 to the move's enumeration to get the exit
+            # condition. Also, this state always lasts just one move.
+            
+            # Note that we need to index historyRounds to find out at which position of the lists round number entryRound
+            # occurred. Because moves like OBSERVE can occupy several list positions, entryRound cannot simply be used
+            # as the list index.
+            
+            return (historyMoves[historyRounds.index(entryRound+1)]+2, entryRound+1)
     
     def move(self, roundsAlive, repertoire, historyRounds, historyMoves, historyActs, historyPayoffs, historyDemes, currentDeme,
              canChooseModel, canPlayRefine, multipleDemes):
+        
+        # The algorithm here is identical to the one used by DiscreteDistribution
+
         interval = [self.Pi, self.Po, self.Pe, self.Pr]
 
         for i in xrange(1,4):
