@@ -10,6 +10,7 @@ import string
 import PythonTidy
 import StringIO
 import traits
+import observe_strategies
 import pkgutil
 import md5
 import simulate
@@ -97,6 +98,8 @@ class Genome(object):
     # Current simulation for this genome, if active
     simulation = None
 
+    observe_strategy = ''
+
     def __init__(self):
         """
         The default constructor creates a genome with a randomly initialised set of traits and state
@@ -178,14 +181,12 @@ class Genome(object):
             self.state.append((state.__class__.__name__, []))
         
         # For each output transition allowed by a state's associated trait, add a random state
-        # as destination
+        # as destination (excluding states with the 'initial' constraint)
 
         # TODO: Add support for valid_successors and valid_predecessors
 
-        # In the current implementation, each state may only be visited once
-
         N = len(self.state)
-        states_left_to_visit = [state_name for (state_name, successors) in self.state]
+        states_left_to_visit = [state.__class__.__name__ for state in interem_states+terminal_states]  # Add constraints
 
         for n in xrange(0, N-1):
             if len(states_left_to_visit) == 0:
@@ -194,14 +195,16 @@ class Genome(object):
                 if len(states_left_to_visit) == 0:
                     break
                 next_state = random.choice(states_left_to_visit)
-                states_left_to_visit.remove(next_state)
+                # states_left_to_visit.remove(next_state)
                 self.state[n][1].append(next_state)
+        
+        self.observe_strategy = random.choice(observe_strategies.strategy)
 
 
     def render(self, debug = False):
 
         move = ""
-        observe = "    random.shuffle(exploiterData)\n    return exploiterData\n"
+        observe = indent(self.observe_strategy, 1)
 
         # Firstly, we capture the done() methods of the various traits as nested function definitions
 
@@ -503,6 +506,7 @@ class Generation(object):
     DEBUG = False
     P_CROSSOVER = 0.9
     P_MUTATION = 0.01
+    PERFORMANCE_THRESHOLD = 500000  # Agents with a fitness beneath this threshold, are killed outright
 
     population = []
     sim_parameters = {}
@@ -541,20 +545,27 @@ class Generation(object):
         def job_callback(job):
             jid[job].simulation = cloud.result(job)
             print('Job %d completed with payoff %d.' % (job, jid[job].simulation.total_payoff))
+        
+        def job_error(job):
+            print('Job %d terminated with an error.' % job)
        
         while len(self.population) > self.BROOD_SIZE:
             for genome in self.population:
                 jid[cloud.call(genome.simulation.run, N_rounds = self.D_ROUNDS, return_self = True, 
-                    _callback = [job_callback], _fast_serialization = 0, _type='c1')] = genome
+                    _callback = [job_callback], _callback_on_error = [job_error], _fast_serialization = 0,
+                    _type='c1')] = genome
             
             # Wait for all tasks to finish
-            cloud.join(jid)
+            cloud.join(jid, ignore_errors=True)
 
             # for (job, genome) in zip(jid, self.population):
             #     genome.simulation = cloud.result(job)
             
             self.population.sort(reverse=True, key=lambda genome: genome.simulation.total_payoff)
             print([genome.simulation.total_payoff for genome in self.population])
+
+            self.population = [genome for genome in self.population 
+                               if genome.simulation.total_payoff >= self.PERFORMANCE_THRESHOLD]
 
             new_N = int(round(len(self.population) * (1. - self.DECIMATION_PERCENT)))
             if new_N < self.BROOD_SIZE:
@@ -570,15 +581,15 @@ class Generation(object):
         parent = walkerrandom.Walkerrandom([genome.simulation.total_payoff for genome in self.population],
                                            self.population)
 
-        while len(next_population) < POPULATION_SIZE:
+        while len(next_population) < self.POPULATION_SIZE:
             p1 = parent.random()
             r = random.random()
-            if r < P_CROSSOVER:
+            if r < self.P_CROSSOVER:
                 # Perform crossover mutation. Firstly, pick a second parent.
                 p2 = parent.random()
                 # Add the crossover of the two parents to the next generation.
                 next_population.append(p1+p2)
-            elif r < (P_CROSSOVER + P_MUTATION):
+            elif r < (self.P_CROSSOVER + self.P_MUTATION):
                 # Add a mutated version of the current individual to the next generation
                 next_population.append(+p1)
             else:
