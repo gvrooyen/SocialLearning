@@ -4,6 +4,30 @@
 		"selected_items":
 		[
 			[
+				"ob",
+				"observe_strategy"
+			],
+			[
+				"observe",
+				"observe_strategy"
+			],
+			[
+				"obs",
+				"observe_random"
+			],
+			[
+				"ov",
+				"observe_influential"
+			],
+			[
+				"obser",
+				"observe_richest"
+			],
+			[
+				"DiscreteD",
+				"DiscreteDistribution_done"
+			],
+			[
 				"Wa",
 				"walkerrandom"
 			],
@@ -55,23 +79,7 @@
 			"file": "solegene.py",
 			"settings":
 			{
-				"buffer_size": 22784,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "walkerrandom.py",
-			"settings":
-			{
-				"buffer_size": 5847,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "simulate.py",
-			"settings":
-			{
-				"buffer_size": 25259,
+				"buffer_size": 27953,
 				"line_ending": "Unix"
 			}
 		},
@@ -84,34 +92,26 @@
 			}
 		},
 		{
-			"file": "traits/Pioneering.py",
+			"file": "exemplars.py",
 			"settings":
 			{
-				"buffer_size": 1295,
+				"buffer_size": 2819,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "moves.py",
+			"file": "observe_strategies.py",
 			"settings":
 			{
-				"buffer_size": 283,
+				"buffer_size": 722,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "traits/DiscreteDistribution.py",
+			"file": "simulate.py",
 			"settings":
 			{
-				"buffer_size": 2009,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "rungp.py",
-			"settings":
-			{
-				"buffer_size": 54,
+				"buffer_size": 25259,
 				"line_ending": "Unix"
 			}
 		}
@@ -140,26 +140,47 @@
 	},
 	"file_history":
 	[
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/agents/fitness/RandomMoves.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/traits/SpecialisationB.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/traits/Specialisation.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/traits/DiscreteDistributionH.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/agents/rendered/agent_0da10c3d69c639727e79f08334063a6c.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/agents/fitness/Reference.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/moves.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/traits/Pioneering.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/agents/rendered/agent_00cac4d2fad4fdf92a1bf0866f0f6dba.pyc",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/tmp.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/test_rendering.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/agents/rendered/agent_85d621f62dd1e4bebe76ebb09249e13e.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/test.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/traits/DiscreteDistributionD.pyc",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/traits/PioneeringBi.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/traits/DiscreteDistributionD.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/traits/DiscreteDistributionC.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/traits/DiscreteDistributionB.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/traits/DiscreteDistribution.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/rungp.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/agents/rendered/exceptions.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/walkerrandom.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/simulate.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/fitness.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/agents/rendered/agent_7f6c994a0162a4bfce63c7c2b4c0cd29.py",
+		"/home/gvrooyen/Dropbox/devel/SocialLearning/agents/rendered/agent_2dc8812e0c2ae2fa62ed2158fc630099.py",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/decorators.py",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/tmp2.py",
-		"/home/gvrooyen/Dropbox/devel/SocialLearning/test.py",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/solegene.py",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/ranges.py",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/.gitignore",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/fitnessd",
-		"/home/gvrooyen/Dropbox/devel/SocialLearning/agents/fitness/Reference.py",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/plotfitness.py",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/plottrace.py",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/agents/fitness/Reference_noBias.py",
-		"/home/gvrooyen/Dropbox/devel/SocialLearning/fitness.py",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/trace_payoffs.py",
 		"/home/gvrooyen/.config/sublime-text-2/Packages/Default/Base File.sublime-settings",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/explore_fitness.py",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/agents/fitness/LearnTillYouKnowSomething.py",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/repodata.py",
 		"/home/gvrooyen/Dropbox/devel/SocialLearning/TODO",
-		"/home/gvrooyen/Dropbox/devel/SocialLearning/simulate.py",
 		"/home/gvrooyen/.config/sublime-text-2/Packages/Default/Global.sublime-settings",
 		"/home/gvrooyen/.config/sublime-text-2/Packages/User/Python.sublime-settings",
 		"/home/gvrooyen/.config/sublime-text-2/Packages/User/Plain text.sublime-settings",
@@ -186,6 +207,8 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"random",
+			"observe",
 			"roundsAlive",
 			"agent_move",
 			"\\t",
@@ -193,7 +216,7 @@
 			"agent_repo"
 		],
 		"highlight": true,
-		"in_selection": false,
+		"in_selection": true,
 		"preserve_case": false,
 		"regex": true,
 		"replace_history":
@@ -217,7 +240,7 @@
 					"file": "solegene.py",
 					"settings":
 					{
-						"buffer_size": 22784,
+						"buffer_size": 27953,
 						"regions":
 						{
 							"bookmarks":
@@ -227,8 +250,8 @@
 								"regions":
 								[
 									[
-										10048,
-										10048
+										16214,
+										16214
 									]
 								],
 								"scope": "bookmarks"
@@ -237,8 +260,8 @@
 						"selection":
 						[
 							[
-								12138,
-								12138
+								16673,
+								16673
 							]
 						],
 						"settings":
@@ -248,69 +271,13 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 4923.0,
+						"translation.y": 5937.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "walkerrandom.py",
-					"settings":
-					{
-						"buffer_size": 5847,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "simulate.py",
-					"settings":
-					{
-						"buffer_size": 25259,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								4179,
-								4179
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1228.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
 					"file": "fitness.py",
 					"settings":
 					{
@@ -321,8 +288,8 @@
 						"selection":
 						[
 							[
-								1702,
-								1746
+								804,
+								804
 							]
 						],
 						"settings":
@@ -332,25 +299,78 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 561.0,
+						"translation.y": 510.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "exemplars.py",
+					"settings":
+					{
+						"buffer_size": 2819,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2757,
+								2757
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 326.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "observe_strategies.py",
+					"settings":
+					{
+						"buffer_size": 722,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								654,
+								654
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Python/Python.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 4,
-					"file": "traits/Pioneering.py",
+					"file": "simulate.py",
 					"settings":
 					{
-						"buffer_size": 1295,
+						"buffer_size": 25259,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1037,
-								1037
+								3806,
+								3811
 							]
 						],
 						"settings":
@@ -360,87 +380,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "moves.py",
-					"settings":
-					{
-						"buffer_size": 283,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "traits/DiscreteDistribution.py",
-					"settings":
-					{
-						"buffer_size": 2009,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								320,
-								320
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 7,
-					"file": "rungp.py",
-					"settings":
-					{
-						"buffer_size": 54,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								16,
-								16
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Python/Python.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 1557.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"

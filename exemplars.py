@@ -7,22 +7,22 @@ import traits
 
 def BifurcateDiscrete():
 
-	traits = {}
+	self_traits = {}
 
-	traits['PioneeringBi'] = traits.PioneeringBi.PioneeringBi()
-	traits['PioneeringBi'].N_rounds = 3
+	self_traits['PioneeringBi'] = traits.PioneeringBi.PioneeringBi()
+	self_traits['PioneeringBi'].N_rounds = 3
 
-	traits['Specialisation'] = traits.Specialisation.Specialisation()
-	traits['SpecialisationB'] = traits.SpecialisationB.SpecialisationB()
+	self_traits['Specialisation'] = traits.Specialisation.Specialisation()
+	self_traits['SpecialisationB'] = traits.SpecialisationB.SpecialisationB()
 
-	traits['DiscreteDistribution'] = traits.DiscreteDistribution.DiscreteDistribution()
-	traits['DiscreteDistributionB'] = traits.DiscreteDistributionB.DiscreteDistributionB()
-	traits['DiscreteDistributionC'] = traits.DiscreteDistributionC.DiscreteDistributionC()
-	traits['DiscreteDistributionD'] = traits.DiscreteDistributionD.DiscreteDistributionD()
-	traits['DiscreteDistributionE'] = traits.DiscreteDistributionE.DiscreteDistributionE()
-	traits['DiscreteDistributionF'] = traits.DiscreteDistributionF.DiscreteDistributionF()
-	traits['DiscreteDistributionG'] = traits.DiscreteDistributionG.DiscreteDistributionG()
-	traits['DiscreteDistributionH'] = traits.DiscreteDistributionH.DiscreteDistributionH()
+	self_traits['DiscreteDistribution'] = traits.DiscreteDistribution.DiscreteDistribution()
+	self_traits['DiscreteDistributionB'] = traits.DiscreteDistributionB.DiscreteDistributionB()
+	self_traits['DiscreteDistributionC'] = traits.DiscreteDistributionC.DiscreteDistributionC()
+	self_traits['DiscreteDistributionD'] = traits.DiscreteDistributionD.DiscreteDistributionD()
+	self_traits['DiscreteDistributionE'] = traits.DiscreteDistributionE.DiscreteDistributionE()
+	self_traits['DiscreteDistributionF'] = traits.DiscreteDistributionF.DiscreteDistributionF()
+	self_traits['DiscreteDistributionG'] = traits.DiscreteDistributionG.DiscreteDistributionG()
+	self_traits['DiscreteDistributionH'] = traits.DiscreteDistributionH.DiscreteDistributionH()
 
 	state = [('PioneeringBi', ['Specialisation', 'SpecialisationB']),
 	         ('Specialisation', ['DiscreteDistribution','DiscreteDistributionB','DiscreteDistributionC','DiscreteDistributionD']),
@@ -37,37 +37,37 @@ def BifurcateDiscrete():
 	         ('DiscreteDistributionH', []),
 	        ]
 	
-	return (traits, state)
+	return (self_traits, state)
 
 
 def Simple():
 
-	traits = {}
+	self_traits = {}
 
-	traits['Pioneering'] = traits.Pioneering.Pioneering()
-	traits['DiscreteDistribution'] = traits.DiscreteDistribution.DiscreteDistribution()
+	self_traits['Pioneering'] = traits.Pioneering.Pioneering()
+	self_traits['DiscreteDistribution'] = traits.DiscreteDistribution.DiscreteDistribution()
 
 	state = [('Pioneering', ['DiscreteDistribution']),
 		     ('DiscreteDistribution', [])
 		    ]
 
-	return (traits, state)
+	return (self_traits, state)
 
 
 def SpecialPioneers():
 
-	traits = {}
+	self_traits = {}
 
-	traits['PioneeringBi'] = traits.Pioneering.Pioneering()
-	traits['DiscreteDistribution'] = traits.DiscreteDistribution.DiscreteDistribution()
-	traits['DiscreteDistributionB'] = traits.DiscreteDistributionB.DiscreteDistributionB()
+	self_traits['PioneeringBi'] = traits.Pioneering.Pioneering()
+	self_traits['DiscreteDistribution'] = traits.DiscreteDistribution.DiscreteDistribution()
+	self_traits['DiscreteDistributionB'] = traits.DiscreteDistributionB.DiscreteDistributionB()
 
 	state = [('PioneeringBi', ['DiscreteDistribution', 'DiscreteDistributionB']),
 		     ('DiscreteDistribution', []),
 		     ('DiscreteDistributionB', [])
 		    ]
 		    
-	return (traits, state)
+	return (self_traits, state)
 
 
-examplars = [BifurcateDiscrete, Simple, SpecialPioneers]
+exemplar_list = [BifurcateDiscrete, Simple, SpecialPioneers]

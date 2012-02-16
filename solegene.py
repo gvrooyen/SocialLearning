@@ -15,6 +15,8 @@ import pkgutil
 import md5
 import simulate
 import walkerrandom
+import exemplars
+import copy
 import pygraphviz as dot
 from agents.rendered.exceptions import *
 
@@ -302,38 +304,139 @@ class Genome(object):
         # Pass over mutated versions of traits existing only in the other parent
         for key in set(other.traits.keys()) - set(self.traits.keys()):
             child.traits[key] = +other.traits[key]
+        
+        # The state graph isn't always a combination of the parents' state graphs. Instead, 1/3 of the time
+        # it's an identical copy of the first parent's state graph; 1/3 of the time of the other parent.
+        # For the remaining 1/3, it is a combined graph that truncates each of the parents' graphs at
+        # crossover points, and splices them.
+        #
+        # This crossover strategy allows state graphs to evolve somewhat slower than the trait parameters.
+        # Also, it provides some stability to "sensible" state graphs that may only need to evolve their
+        # trait parameters further in order to dominate.
 
-        # Create the parent subgraphs by selecting random crossover points
+        crossover_strategy = random.randint()
+
         P1 = self.state
         P2 = other.state
 
-        P1 = P1[0:random.randint(1,len(P1))]
-        P2 = P2[random.randint(0,len(P2)-1):len(P2)]
+        if crossover_strategy <= 1.0/3.0:
+            child.state = P1
+        elif crossover_strategy <= 2.0/3.0:
+            child.state = P2
+        else:
 
-        print P1
-        print P2
+            # Create the parent subgraphs by selecting random crossover points
+            P1 = P1[0:random.randint(1,len(P1))]
+            P2 = P2[random.randint(0,len(P2)-1):len(P2)]
 
-        # We'll ignore any edges pointing into the void for now. Let's join the two graphs first, and then
-        # patch up any missing links. But first, we need to remove any duplicate states in the two graphs.
+            print P1
+            print P2
 
-        for t in set([x[0] for x in P1]).intersection([x[0] for x in P2]):
-            if random.random() < 0.5:
-                # Remove this state from the first parent
-                P1 = [x for x in P1 if x[0] != t]
-            else:
-                # Remove this state from the second parent
-                P2 = [x for x in P2 if x[0] != t]
-        
-        child.state = P1 + P2
+            # We'll ignore any edges pointing into the void for now. Let's join the two graphs first, and then
+            # patch up any missing links. But first, we need to remove any duplicate states in the two graphs.
 
-        valid_states = [x[0] for x in child.state]
+            for t in set([x[0] for x in P1]).intersection([x[0] for x in P2]):
+                if random.random() < 0.5:
+                    # Remove this state from the first parent
+                    P1 = [x for x in P1 if x[0] != t]
+                else:
+                    # Remove this state from the second parent
+                    P2 = [x for x in P2 if x[0] != t]
+            
+            child.state = P1 + P2
 
-        for (idx_s,s) in enumerate(child.state):
-            for (idx_target,target) in enumerate(s[1]):
-                if target not in valid_states:
-                    child.state[idx_s][1][idx_target] = child.state[random.randint(0,len(child.state)-1)][0]
+            valid_states = [x[0] for x in child.state]
+
+            for (idx_s,s) in enumerate(child.state):
+                for (idx_target,target) in enumerate(s[1]):
+                    if target not in valid_states:
+                        child.state[idx_s][1][idx_target] = child.state[random.randint(0,len(child.state)-1)][0]
+            
+            # TODO: Add a trimming function that removes unreachable states from the state graph (should speed up
+            #       agent execution a bit)
 
         return child
+
+
+    def __pos__(self):
+        """
+        Perform mutation on the individual genome. 50% of the time, this is just mutation of the individual
+        traits. 50% of the time, an additional mutation of the state graph is performed, which may randomly
+        be one of the following:
+            - swapping of the position of two states
+            - replacement of a state by an unused state
+            - removal of a random leaf
+            - replacement of a random transition
+        """
+        # Create a new child. Note that the default constructor initialises the child with random traits,
+        # which allows it to discover traits that may not have been visible to its parents.
+        child = Genome()
+
+        child.state = copy.deepcopy(self.state)
+
+        # Mutate the parent's traits
+        for key in self.traits.keys():
+            child.traits[key] = +self.traits[key]
+        
+        if random.random() > 0.5:
+            mutation_type = random.choice(['swap', 'replace', 'remove', 'reroute'])
+            print mutation_type
+            if mutation_type == 'swap':
+                # swapping means that any edges that were pointing towards the first state, now points towards
+                # the second state, and vice versa:
+                state1 = random.choice(self.state)[0]
+                state2 = random.choice(self.state)[0]
+
+                print("Swapping %s with %s" % (state1, state2))
+
+                for (idx, state) in enumerate(child.state):
+                    state_name = child.state[idx][0]
+                    child.state[idx] = (state_name, [None if s==state1 else s for s in child.state[idx][1]])
+                    child.state[idx] = (state_name, [state1 if s==state2 else s for s in child.state[idx][1]])
+                    child.state[idx] = (state_name, [state2 if s==None else s for s in child.state[idx][1]])
+            elif mutation_type == 'replace':
+                # Select a victim
+                state_idx = random.randint(0,len(child.state)-1)
+
+                # Record the old state name -- we'll need to replace references to it
+                old_state = child.state[state_idx][0]
+
+                new_state = random.choice(child.traits.keys())
+
+                print("Replacing %s with %s" % (old_state, new_state))
+
+                # If a state with this name already exists in the graph, rip it out.
+                for state in child.state:
+                    if state[0] == new_state:
+                        child.state.remove(state)
+                        break
+                
+                # The index of the replacement state may have shifted now
+                for (idx, state) in enumerate(child.state):
+                    if state[0] == old_state:
+                        state_idx = idx
+                        break
+
+                # Firstly, we need to fix any references TO this state, by replacing old_state with new_state
+                for (idx, state) in enumerate(child.state):
+                    child.state[idx] = (state[0], [new_state if s == old_state else s for s in state[1]])
+                
+                child.state[state_idx] = (new_state, child.state[state_idx][1])
+
+                # Lastly, check that the number of outgoing edges on all states are still correct. If we have
+                # too few, add random entries as necessary.
+
+                
+                for (idx, state) in enumerate(child.state):
+                    while len(state[1]) > child.traits[state[0]].N_transitions:
+                        child.state[idx][1].pop(random.randint(0,len(state[1])-1))
+                    while len(state[1]) < child.traits[state[0]].N_transitions:
+                        child.state[idx][1].append(random.choice(child.state)[0])
+        
+        print child.state
+
+        return child
+
 
 
 class Trait(object):
@@ -515,7 +618,14 @@ class Generation(object):
         # TODO: Add support for parameter ranges
         self.sim_parameters = sim_parameters
         for i in xrange(0, self.POPULATION_SIZE):
-            self.population.append(Genome())
+            new_genome = Genome()
+            # Replace 20% of new individuals with "exemplars": pre-designed individuals that we believe will
+            # perform well.
+            if random.random() < 0.2:
+                (self_traits, state) = random.choice(exemplars.exemplar_list)()
+                new_genome.traits.update(self_traits)
+                new_genome.state = state
+            self.population.append(new_genome)
     
 
     def step(self):
@@ -544,7 +654,7 @@ class Generation(object):
 
         def job_callback(job):
             jid[job].simulation = cloud.result(job)
-            print('Job %d completed with payoff %d.' % (job, jid[job].simulation.total_payoff))
+            print('Job %d completed with fitness %.2f.' % (job, 1.0*jid[job].simulation.total_payoff / jid[job].simulation.round))
         
         def job_error(job):
             print('Job %d terminated with an error.' % job)
@@ -561,11 +671,12 @@ class Generation(object):
             # for (job, genome) in zip(jid, self.population):
             #     genome.simulation = cloud.result(job)
             
-            self.population.sort(reverse=True, key=lambda genome: genome.simulation.total_payoff)
-            print([genome.simulation.total_payoff for genome in self.population])
+            self.population.sort(reverse=True, key=lambda genome: 1.0 * genome.simulation.total_payoff)
 
             self.population = [genome for genome in self.population 
                                if genome.simulation.total_payoff >= self.PERFORMANCE_THRESHOLD]
+
+            print([1.0 * genome.simulation.total_payoff / genome.simulation.round for genome in self.population])
 
             new_N = int(round(len(self.population) * (1. - self.DECIMATION_PERCENT)))
             if new_N < self.BROOD_SIZE:

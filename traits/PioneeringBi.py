@@ -53,7 +53,7 @@ class PioneeringBi(Trait):
 
 
     def __pos__(self):
-        child = Pioneering()
+        child = PioneeringBi()
         if random.random() < 0.5:
             child.N_rounds = self.N_rounds - 1
         else:

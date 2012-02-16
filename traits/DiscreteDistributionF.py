@@ -14,6 +14,10 @@ class DiscreteDistributionF(Trait):
         return ('terminal')
 
     @property
+    def N_transitions(self):
+        return 0
+
+    @property
     def evolvables(self):
         return {'Pi': (float, 0., 1.),
                 'Po': (float, 0., 1.),
