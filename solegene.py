@@ -380,7 +380,6 @@ class Genome(object):
         
         if random.random() > 0.5:
             mutation_type = random.choice(['swap', 'replace', 'remove', 'reroute'])
-            print mutation_type
             if mutation_type == 'swap':
                 # swapping means that any edges that were pointing towards the first state, now points towards
                 # the second state, and vice versa:
@@ -402,8 +401,6 @@ class Genome(object):
                 old_state = child.state[state_idx][0]
 
                 new_state = random.choice(child.traits.keys())
-
-                print("Replacing %s with %s" % (old_state, new_state))
 
                 # If a state with this name already exists in the graph, rip it out.
                 for state in child.state:
@@ -441,13 +438,25 @@ class Genome(object):
                     # We can't remove the only state!
                     idx = random.randint(0, len(child.state)-1)
                     state_name = child.state[idx][0]
-                    print("Removing state %s" % state_name)
                     child.state.pop(idx)
                 
                     for (idx, state) in enumerate(child.state):
                         if state_name in state[1]:
                             child.state[idx][1].remove(state_name)
                             child.state[idx][1].append(random.choice(child.state)[0])
+            
+            elif mutation_type == 'reroute':
+
+                # Pick a random state, and if it has outgoing connections, randomly pick a new destination for one
+
+                if len(child.state) > 2:
+                    # Rerouting is really boring if we only have one or two states
+                    idx = random.randint(0, len(child.state)-1)
+                    state_name = child.state[idx][0]
+
+                    num_edges = len(child.state[idx][1])
+                    if num_edges > 0:
+                        child.state[idx][1][random.randint(0,num_edges-1)] = random.choice(child.state)[0]
 
         
         print child.state
