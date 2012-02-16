@@ -425,13 +425,30 @@ class Genome(object):
 
                 # Lastly, check that the number of outgoing edges on all states are still correct. If we have
                 # too few, add random entries as necessary.
-
                 
                 for (idx, state) in enumerate(child.state):
                     while len(state[1]) > child.traits[state[0]].N_transitions:
                         child.state[idx][1].pop(random.randint(0,len(state[1])-1))
                     while len(state[1]) < child.traits[state[0]].N_transitions:
                         child.state[idx][1].append(random.choice(child.state)[0])
+            
+            elif mutation_type == 'remove':
+
+                # Here we pluck out a random state, and then look through the state graph to replace all
+                # reference to the state to a random new state
+
+                if len(child.state) > 1:
+                    # We can't remove the only state!
+                    idx = random.randint(0, len(child.state)-1)
+                    state_name = child.state[idx][0]
+                    print("Removing state %s" % state_name)
+                    child.state.pop(idx)
+                
+                    for (idx, state) in enumerate(child.state):
+                        if state_name in state[1]:
+                            child.state[idx][1].remove(state_name)
+                            child.state[idx][1].append(random.choice(child.state)[0])
+
         
         print child.state
 
