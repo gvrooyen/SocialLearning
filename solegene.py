@@ -128,7 +128,7 @@ class Genome(object):
     #               (a*M) : remove mutation of a
     #               (a*U) : reroute mutation of a
     #               (a*b) : revert mutation to examplar b
-    family_tree = ''
+    # family_tree = ''
 
     observe_strategy = ''
 
@@ -168,7 +168,7 @@ class Genome(object):
         terminal_states = []
         interem_states = []
 
-        self.family_tree = 'R'
+        # self.family_tree = 'R'
 
         for i in xrange(0, random.randint(1,self.MAX_STATES)):
             if len(available_traits) == 0:
@@ -284,8 +284,8 @@ class Genome(object):
                 logger.error(pprint.pformat(self.state))
                 logger.error("self.traits:")
                 logger.error(pprint.pformat(self.traits))
-                logger.error("self.parents:")
-                logger.error(pprint.pformat(self.parents))
+                # logger.error("self.parents:")
+                # logger.error(pprint.pformat(self.parents))
                 
         
         move += indent(state_calc_template, 1)
@@ -343,7 +343,7 @@ class Genome(object):
         # which allows it to discover traits that may not have been visible to its parents.
         child = Genome()
         child.parents = (self.code_hash, other.code_hash)
-        child.family_tree = "(%s+%s)" % (self.family_tree, other.family_tree)
+        # child.family_tree = "(%s+%s)" % (self.family_tree, other.family_tree)
 
         # Pass over the parents' shared traits first
         for key in set(self.traits.keys()).intersection(other.traits.keys()):
@@ -563,7 +563,7 @@ class Genome(object):
                 
                 child.state = ex_state
         
-        child.family_tree = '(%s*%s)' % (self.family_tree, mutation_code)
+        # child.family_tree = '(%s*%s)' % (self.family_tree, mutation_code)
         return child
 
 
@@ -765,7 +765,7 @@ class Generation(object):
                 # perform well.
                 if random.random() < 0.2:
                     idx = random.randint(0, len(exemplars.exemplar_list)-1)
-                    new_genome.family_tree = string.lowercase[idx]
+                    # new_genome.family_tree = string.lowercase[idx]
                     (self_traits, state) = exemplars.exemplar_list[idx]()
                     new_genome.traits.update(self_traits)
                     new_genome.state = state
@@ -833,7 +833,7 @@ class Generation(object):
                     logger.debug("More information on Job %d's unexpected termination:" % e[1].jid)
                     logger.debug("State graph:")
                     logger.debug(pprint.pformat(jobs[e[1].jid].state))
-                    logger.debug("Family tree: %s" % pprint.pformat(jobs[e[1].jid].family_tree))
+                    # logger.debug("Family tree: %s" % pprint.pformat(jobs[e[1].jid].family_tree))
                     jobs.pop(e[1].jid)
 
             # for (job, genome) in zip(jid, self.population):
