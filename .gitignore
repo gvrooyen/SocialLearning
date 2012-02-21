@@ -12,3 +12,4 @@
 cython/
 htmlcov/
 log/
+agent_*.py*

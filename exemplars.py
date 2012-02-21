@@ -58,7 +58,7 @@ def SpecialPioneers():
 
 	self_traits = {}
 
-	self_traits['PioneeringBi'] = traits.Pioneering.Pioneering()
+	self_traits['PioneeringBi'] = traits.PioneeringBi.PioneeringBi()
 	self_traits['DiscreteDistribution'] = traits.DiscreteDistribution.DiscreteDistribution()
 	self_traits['DiscreteDistributionB'] = traits.DiscreteDistributionB.DiscreteDistributionB()
 
