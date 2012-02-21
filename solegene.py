@@ -27,8 +27,16 @@ from types import ModuleType
 # import cloud.mp as cloud    # Simulate cloud processing locally
 import cloud
 
+# Make sure a NullHandler is available
+# This was added in Python 2.7/3.2
+try:
+    from logging import NullHandler
+except ImportError:
+    class NullHandler(logging.Handler):
+        def emit(self, record):
+
 logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
+logger.addHandler(NullHandler())
 
 MAX_STATE_RECURSION = 16
 
