@@ -718,19 +718,20 @@ class Trait(object):
         for prop in self.evolvables:
             setattr(child, prop, getattr(self, prop))
 
-        prop = random.choice(self.evolvables.keys())
+        if len(self.evolvables.keys()) > 0:
+            prop = random.choice(self.evolvables.keys())
 
-        a = self.evolvables[prop][1]
-        b = self.evolvables[prop][2]
+            a = self.evolvables[prop][1]
+            b = self.evolvables[prop][2]
 
-        if self.evolvables[prop][0] == int:
-            X = random.randint(a,b)
-        elif self.evolvables[prop][0] == float:
-            X = random.uniform(a,b)
-        else:
-            raise ValueError("Property %s <%s> is not mutatable" % (prop, type(prop))) 
+            if self.evolvables[prop][0] == int:
+                X = random.randint(a,b)
+            elif self.evolvables[prop][0] == float:
+                X = random.uniform(a,b)
+            else:
+                raise ValueError("Property %s <%s> is not mutatable" % (prop, type(prop))) 
         
-        setattr(child, prop, X)
+            setattr(child, prop, X)
 
         return child
 
