@@ -11,7 +11,7 @@ class Specialisation(Trait):
 
     @property
     def constraints(self):
-        return ('terminal')
+        return ()
 
     @property
     def N_transitions(self):

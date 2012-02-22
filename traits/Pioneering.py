@@ -35,7 +35,7 @@ class Pioneering(Trait):
             return (1,self.N_rounds)
         # Exit condition 2: We've tested, and the agent is not a pioneer
         elif (len(historyActs) > 0) and (historyActs[0] > -1):
-            return (1,1)
+            return (1,roundsAlive)
         # Otherwise, remain in the current state
         else:
             return 0

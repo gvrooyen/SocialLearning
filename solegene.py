@@ -237,6 +237,20 @@ class Genome(object):
         self.observe_strategy = random.choice(observe_strategies.strategy)
 
 
+    def __del__(self):
+        """
+        If any code was rendered from this genome, remove the generated file.
+        """
+
+        # REFACTOR: This is poor design, because the code is rendered by the genome's owner, but deleted by the genome
+        # itself. Ideally, the Genome class should take responsibility for both rendering and deletion of code files.
+
+        try:
+            os.remove(self.agent_path)
+        except:
+            pass
+
+
     def render(self, debug = False):
 
         move = ""
@@ -314,7 +328,7 @@ class Genome(object):
         # PythonTidy.tidy_up(file_in, file_out)
         # return file_out.getvalue()
         return result.substitute(move = move, observe = observe)
-
+    
     
     def render_state(self):
         """
@@ -409,6 +423,21 @@ class Genome(object):
             
             # TODO: Add a trimming function that removes unreachable states from the state graph (should speed up
             #       agent execution a bit)
+
+        # Next, go through a similar exercise for the observe strategy
+
+        crossover_strategy = random.random()
+
+        P1 = self.observe_strategy
+        P2 = other.observe_strategy
+
+        if crossover_strategy <= 1.0/3.0:
+            child.observe_strategy = P1
+        elif crossover_strategy <= 2.0/3.0:
+            child.observe_strategy = P2
+        else:
+            # Mutate to a random strategy
+            child.observe_strategy = random.choice(observe_strategies.strategy)
 
         return child
 
@@ -562,6 +591,9 @@ class Genome(object):
                     child.traits[t] = ex_traits[t]
                 
                 child.state = ex_state
+        
+        # For the observe strategy, pick a random new strategy 25% of the time
+        child.observe_strategy = random.choice(observe_strategies.strategy)
         
         # child.family_tree = '(%s*%s)' % (self.family_tree, mutation_code)
         return child

@@ -409,6 +409,10 @@ class Simulate:
                         payoff = self.demes[d].acts[act]
                         if individual.refinements.has_key(act):
                             payoff += self.payoff_increment(individual.refinements[act])
+
+                        # Update the value remembered in the repertoire (it may have changed):
+                        individual.repertoire[act] = payoff
+
                         individual.historyRounds += [individual.roundsAlive+1]
                         individual.historyMoves += [EXPLOIT]                    
                         individual.historyActs += [act]
@@ -445,6 +449,10 @@ class Simulate:
                         individual.historyActs += [act]
                         individual.historyPayoffs += [self.demes[d].acts[act] 
                                                       + self.payoff_increment(individual.refinements[act])]
+
+                        # Update this act's value in the repertoire
+                        individual.repertoire[act] = individual.historyPayoffs[-1]
+
                         individual.historyDemes += [d]
 
                         try:

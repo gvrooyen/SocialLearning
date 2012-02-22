@@ -34,12 +34,13 @@ class PioneeringBi(Trait):
     def done(self, entryRound,
              roundsAlive, repertoire, historyRounds, historyMoves, historyActs, historyPayoffs, historyDemes, currentDeme,
              canChooseModel, canPlayRefine, multipleDemes):
+        assert entryRound == 0
         # Exit condition 1: The agent is a pioneer, and N_rounds rounds have elapsed
         if (roundsAlive >= self.N_rounds) and (historyActs[0] == -1):
             return (1,self.N_rounds)
         # Exit condition 2: We've tested, and the agent is not a pioneer
         elif (len(historyActs) > 0) and (historyActs[0] > -1):
-            return (2,1)
+            return (2,roundsAlive)
         # Otherwise, remain in the current state
         else:
             return 0
