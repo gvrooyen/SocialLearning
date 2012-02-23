@@ -27,7 +27,7 @@ class InnovationBeat(Trait):
 
     @property
     def constraints(self):
-        return ()
+        return ('terminal')
 
     @property
     def N_transitions(self):
@@ -68,34 +68,113 @@ class InnovationBeat(Trait):
     
     def move(self, roundsAlive, repertoire, historyRounds, historyMoves, historyActs, historyPayoffs, historyDemes, currentDeme,
              canChooseModel, canPlayRefine, multipleDemes):
-        interval = [self.Pi, self.Po, self.Pe, self.Pr]
 
-        for i in xrange(1,4):
-            interval[i] = interval[i-1] + interval[i]
+    # Firstly, we need to find a sequence of N_Seq OBSERVE actions, to decide which round is most likely to be
+    # a sync round. We do this in a greedy way: if we see an OBSERVE round where no models (agents playing EXPLOIT)
+    # were observe, we immediately assume that is a sync round. This has the added effect that pioneers (agents starting
+    # this state in the very first round of a simulation) will start syncing on the first round.
 
-        # Normalise the intervals
-        if canPlayRefine:
-            interval = [x/interval[-1] for x in interval]
+        if roundsAlive < 2:
+            return (OBSERVE,)
         else:
-            interval = [x/interval[-2] for x in interval]
-        
-        # If the repertoire is empty, only Pi or Po should be chosen:
-        if len(repertoire) == 0:
-            interval = [x/interval[-3] for x in interval]
+            start_idx = 0
+            streak_found = False
 
-        roll = random.random()
+            while not streak_found:
+                # Try to find runs of the OBSERVE action. Note that multiple OBSERVE results may occur in a single round,
+                # so we'll need to collapse these later
+                try:
+                    first_observe_idx = historyMoves[start_idx:].index(OBSERVE) + start_idx
+                except ValueError:
+                    # No OBSERVE actions remain in the history, so we need to create some
+                    return (OBSERVE,)
 
-        if roll <= interval[0]:
-            return (INNOVATE, )
-        elif roll <= interval[1]:
-            return (OBSERVE, )
-        elif roll <= interval[2]:
-            return (EXPLOIT, max(repertoire, key=repertoire.get))
-        elif (roll <= interval[3]) and canPlayRefine:   # Add the sanity check in case of rounding errors
-            return (REFINE, max(repertoire, key=repertoire.get))
-        else:
-            # Catch-all for rounding errors
-            return (EXPLOIT, max(repertoire, key=repertoire.get))
+                observe_payoffs = {}
+
+                for idx in xrange(first_observe_idx, len(historyMoves)):
+                    if historyMoves[idx] == OBSERVE:
+                        round = historyRounds[idx]
+                        try:
+                            observe_payoffs[round] += historyPayoffs[idx]
+                        except KeyError:
+                            observe_payoffs[round] = historyPayoffs[idx]
+                        if len(observe_payoffs) >= self.N_Seq:
+                            streak_found = True
+                    else:
+                        # The OBSERVE streak has ended before it was long enough; look for the next one.
+                        start_idx = idx + 1
+                        break
+                else:
+                    if not streak_found:
+                        # We're midway through an OBSERVE streak; play the next round.
+                        return (OBSERVE,)
+
+            # Efficient trick to obtain both the minimum key and value in a single traversal
+            import operator
+            min_round, min_payoff = min(observe_payoffs.items(), key=operator.itemgetter(1))
+
+            # The value of the minimum round allows us to determine at what offset the "innovation beat" occurs
+            # relative to this individual's first round of life. We would like to later calculate
+            # e.g. self.seq_A[(roundsAlive - offset) % 4] to determine what move in the sequence to play
+            # recall that self.seq_A[0] is the INNOVATE round).
+            #
+            # If the min_round was found at round 13, and N_Seq == 4, offset must be 1, so that INNOVATE can
+            # again be played at round 17, because (17 - 1) % 4 is zero.
+
+            offset = min_round % self.N_Seq
+
+            # The next thing we should check, is whether we've made the choice to be in group A or group B
+            # yet. We do this by inspecting the moves after the OBSERVE streak (until they run out). The first
+            # move that unambiguously corresponds to a move in one of the sequences (taking into account the
+            # round and offset) is used to pick the sequence.
+            #
+            # Note that it typically doesn't matter if the OBSERVE streak was a coincidence from a previous
+            # state, and that the "unambiguous correspondence" is also coincidental. It will in future associate
+            # this individual with this state by the same analysis. (An exception to this assumption is if
+            # a previous state deliberately plays similar OBSERVE sequences, which may disturb the A/B balance).
+
+            last_observe_round = max(observe_payoffs.keys())
+
+            seq = None
+
+            for round in xrange(last_observe_round+1, historyRounds[-1]):
+                idx = historyRounds.index(round)
+                s = (round - offset) % self.N_Seq
+                m = historyMoves[idx]
+
+                # It's no use checking for unambiguous correspondence if the sequences play the same move at
+                # this point
+                if self.seq_A[s] != self.seq_B[s]:
+                    if m == self.seq_A[s]:
+                        seq = self.seq_A
+                        break
+                    elif m == self.seq_B[s]:
+                        seq = self.seq_B
+                        break
+                    else:
+                        # Keep on looking
+                        pass
+
+            if not seq:
+                # We didn't find any evidence that we made a choice about a group to belong to yet. Pick one!
+                seq = random.choice([self.seq_A, self.seq_B])
+
+            next_move = seq[(roundsAlive - offset) % self.N_Seq]
+
+            if next_move == INNOVATE:
+                return (INNOVATE,)
+            elif next_move == OBSERVE:
+                return (OBSERVE,)
+            elif len(repertoire) > 0:
+                if next_move == EXPLOIT:
+                    return (EXPLOIT, max(repertoire, key=repertoire.get))
+                elif next_move == REFINE:
+                    if canPlayRefine:
+                        return (REFINE, max(repertoire, key=repertoire.get))
+                    else:
+                        return (EXPLOIT, max(repertoire, key=repertoire.get))
+            else:
+                return (INNOVATE,)
 
 
     # We have to override the crossover and mutation operators, because the sequence lists need to be

@@ -158,10 +158,12 @@ class Genome(object):
         self.traits = {}
 
         for importer, modname, ispkg in pkgutil.iter_modules(package.__path__, prefix):
-            T = __import__(modname, fromlist="*")
-            T_name = T.__name__.split('.')[-1]      # The trait's unqualified name
-            # A trait's default constructor handles the random initialisation
-            self.traits[T_name] = getattr(T, T_name)()
+            # Traits that are still under development, start with an underscore; skip them.
+            if not modname.startswith('traits._'):
+                T = __import__(modname, fromlist="*")
+                T_name = T.__name__.split('.')[-1]      # The trait's unqualified name
+                # A trait's default constructor handles the random initialisation
+                self.traits[T_name] = getattr(T, T_name)()
         
         available_traits = self.traits.keys()
         initial_state = None
