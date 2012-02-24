@@ -6,6 +6,7 @@ class DiscreteDistribution(Trait):
 
     """
     Randomly play acceptable moves, over a discrete distribution of which the weights can evolve.
+    This version of the trait weighs all actions equally.
     """
 
     @property

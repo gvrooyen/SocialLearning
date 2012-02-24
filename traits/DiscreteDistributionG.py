@@ -7,6 +7,8 @@ class DiscreteDistributionG(Trait):
     """
     This trait is identical to the DiscreteDistribution trait. This duplicate allows a parallel version
     of the trait to evolve separately, and both versions can occur simultaneously in the state graph.
+
+    This version of the trait gives higher initial weight to both EXPLOIT and OBSERVE.
     """
 
     @property
@@ -26,8 +28,8 @@ class DiscreteDistributionG(Trait):
     
     def __init__(self):
         self.Pi = random.random()
-        self.Po = random.random()
-        self.Pe = random.random()
+        self.Po = 1+random.random()
+        self.Pe = 1+random.random()
         self.Pr = random.random()
 
     def done(self, entryRound,

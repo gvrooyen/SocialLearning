@@ -62,7 +62,7 @@ class Study(Trait):
             return (INNOVATE, )
         elif roll <= interval[1]:
             return (OBSERVE, )
-        elif (roll <= interval[3]) and canPlayRefine:   # Add the sanity check in case of rounding errors
+        elif (roll <= interval[2]) and canPlayRefine:   # Add the sanity check in case of rounding errors
             return (REFINE, max(repertoire, key=repertoire.get))
         else:
             # Catch-all for rounding errors

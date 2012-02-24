@@ -63,7 +63,7 @@ state_calc_template = \
 """
 def traverse_states(state_matrix, state_idx = 0, entry_round = 0, recursion_depth = 0):
     if recursion_depth > %d:
-        raise AgentError("Maximum state graph recursion reached (most likely due to an infinite state graph loop")
+        raise RuntimeError("Maximum state graph recursion reached (most likely due to an infinite state graph loop")
     done = state_matrix[state_idx][1](entry_round)
     if not done:
         return state_matrix[state_idx][0]

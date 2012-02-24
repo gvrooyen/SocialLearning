@@ -59,15 +59,44 @@ def SpecialPioneers():
 	self_traits = {}
 
 	self_traits['PioneeringBi'] = traits.PioneeringBi.PioneeringBi()
-	self_traits['DiscreteDistribution'] = traits.DiscreteDistribution.DiscreteDistribution()
+
+	# Pioneers should emphasize innovation
 	self_traits['DiscreteDistributionB'] = traits.DiscreteDistributionB.DiscreteDistributionB()
 
-	state = [('PioneeringBi', ['DiscreteDistribution', 'DiscreteDistributionB']),
-		     ('DiscreteDistribution', []),
-		     ('DiscreteDistributionB', [])
+	# Non-pioneers should emphasize exploitation
+	self_traits['DiscreteDistributionD'] = traits.DiscreteDistributionD.DiscreteDistributionD()
+
+	state = [('PioneeringBi', ['DiscreteDistributionB', 'DiscreteDistributionD']),
+		     ('DiscreteDistributionB', []),
+		     ('DiscreteDistributionD', [])
 		    ]
 		    
 	return (self_traits, state)
 
 
-exemplar_list = [BifurcateDiscrete, Simple, SpecialPioneers]
+def ContinuousProfessionalDevelopment():
+	"""
+	After the pioneering stage, pioneers immediately start exploiting their strongest act, until payoffs
+	drop, at which stage they go into a study phase, then back to greedy exploitation.
+
+	Non-pioneers start with a study phase, then go into greedy exploitation, and back to study as necessary.
+	"""
+
+	self_traits = {}
+
+	self_traits['PioneeringBi'] = traits.PioneeringBi.PioneeringBi()
+	self_traits['ExploitGreedy'] = traits.ExploitGreedy.ExploitGreedy()
+	self_traits['Study'] = traits.Study.Study()
+	self_traits['ExploitGreedyB'] = traits.ExploitGreedyB.ExploitGreedyB()
+	self_traits['StudyB'] = traits.StudyB.StudyB()
+
+	state = [('PioneeringBi', ['ExploitGreedy', 'StudyB']),
+		     ('ExploitGreedy', ['Study']),
+		     ('Study', ['ExploitGreedy']),
+		     ('ExploitGreedyB', ['StudyB']),
+		     ('StudyB', ['ExploitGreedyB']),
+		    ]
+
+	return (self_traits, state)
+
+exemplar_list = [BifurcateDiscrete, Simple, SpecialPioneers, ContinuousProfessionalDevelopment]

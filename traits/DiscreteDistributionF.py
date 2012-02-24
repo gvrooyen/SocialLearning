@@ -7,6 +7,8 @@ class DiscreteDistributionF(Trait):
     """
     This trait is identical to the DiscreteDistribution trait. This duplicate allows a parallel version
     of the trait to evolve separately, and both versions can occur simultaneously in the state graph.
+
+    This version of the trait gives higher initial weight to both EXPLOIT and INNOVATE.
     """
 
     @property
@@ -25,9 +27,9 @@ class DiscreteDistributionF(Trait):
                 'Pr': (float, 0., 1.)}
     
     def __init__(self):
-        self.Pi = random.random()
+        self.Pi = 1+random.random()
         self.Po = random.random()
-        self.Pe = random.random()
+        self.Pe = 1+random.random()
         self.Pr = random.random()
 
     def done(self, entryRound,

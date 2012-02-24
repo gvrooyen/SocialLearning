@@ -7,6 +7,8 @@ class DiscreteDistributionE(Trait):
     """
     This trait is identical to the DiscreteDistribution trait. This duplicate allows a parallel version
     of the trait to evolve separately, and both versions can occur simultaneously in the state graph.
+
+    This version of the trait gives added initial weight to REFINE.
     """
 
     @property
@@ -28,7 +30,7 @@ class DiscreteDistributionE(Trait):
         self.Pi = random.random()
         self.Po = random.random()
         self.Pe = random.random()
-        self.Pr = random.random()
+        self.Pr = 1+random.random()
 
     def done(self, entryRound,
              roundsAlive, repertoire, historyRounds, historyMoves, historyActs, historyPayoffs, historyDemes, currentDeme,

@@ -98,7 +98,7 @@ class InnovationBeat(Trait):
                             observe_payoffs[round] += historyPayoffs[idx]
                         except KeyError:
                             observe_payoffs[round] = historyPayoffs[idx]
-                        if len(observe_payoffs) >= self.N_Seq:
+                        if len(observe_payoffs) > self.N_Seq:
                             streak_found = True
                     else:
                         # The OBSERVE streak has ended before it was long enough; look for the next one.
@@ -121,7 +121,7 @@ class InnovationBeat(Trait):
             # If the min_round was found at round 13, and N_Seq == 4, offset must be 1, so that INNOVATE can
             # again be played at round 17, because (17 - 1) % 4 is zero.
 
-            offset = min_round % self.N_Seq
+            offset = (min_round) % self.N_Seq
 
             # The next thing we should check, is whether we've made the choice to be in group A or group B
             # yet. We do this by inspecting the moves after the OBSERVE streak (until they run out). The first
@@ -159,7 +159,7 @@ class InnovationBeat(Trait):
                 # We didn't find any evidence that we made a choice about a group to belong to yet. Pick one!
                 seq = random.choice([self.seq_A, self.seq_B])
 
-            next_move = seq[(roundsAlive - offset) % self.N_Seq]
+            next_move = seq[(roundsAlive - offset + 1) % self.N_Seq]
 
             if next_move == INNOVATE:
                 return (INNOVATE,)
