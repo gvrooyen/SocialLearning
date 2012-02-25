@@ -8,7 +8,7 @@ import gc
 import datetime
 import cPickle as pickle
 
-def rungpy(d = 'default', n = 100, cloud = False, multiproc = False, debug = False, mode_spatial = False,
+def rungp(d = 'default', n = 100, cloud = False, multiproc = False, debug = False, mode_spatial = False,
 		   mode_cumulative = False, mode_model_bias = False, N_observe = 3, P_c = 0.001, P_copyFail = 0.1,
 		   N_migrate = 5, r_max = 100):
 
@@ -158,7 +158,7 @@ if __name__ == '__main__':
 						help="Maximum refinement gain when --mode_cumulative is active")                        
 	args = parser.parse_args()
 
-	rungpy(d = args.d, n = args.n, cloud = args.cloud, multiproc = args.multiproc, debug = args.debug,
+	rungp(d = args.d, n = args.n, cloud = args.cloud, multiproc = args.multiproc, debug = args.debug,
 		   mode_spatial = args.mode_spatial, mode_cumulative = args.mode_cumulative,
 		   mode_model_bias = args.mode_model_bias, N_observe = args.N_observe, P_c = args.P_c,
 		   P_copyFail = args.P_copyFail, N_migrate = args.N_migrate, r_max = args.r_max)
