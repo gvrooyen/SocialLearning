@@ -242,6 +242,45 @@ class Genome(object):
         
         self.observe_strategy = random.choice(observe_strategies.strategy)
 
+        # Do a sanity check on the generated state graph
+        self.fix()
+            
+
+    def fix(self):
+        """
+        Run a sanity check on the state graph, and automatically fix any problems, such as:
+            - states with an incorrect number of output edges
+            - states with the 'initial' constraint being used as an output target
+            - empty state graph
+        """
+
+        while self.state == []:
+            # Redo from start
+            self.__init__()
+
+        valid_targets = []
+        for (idx, s) in enumerate(self.state):
+            if 'initial' not in self.traits[s[0]].constraints:
+                valid_targets.append(s[0])
+
+        # Zero valid targets is only allowable if we have a single state with no output transitions
+        while (len(valid_targets) == 0) and (self.traits[self.state[0]].N_transitions > 0):
+            # Add another random state from the unused traits
+            new_state = random.choice(child.traits.keys())
+            if 'initial' not in self.traits[new_state].constraints:
+                self.state[idx][1].append(new_state)
+                valid_targets.append(new_state)
+
+        # Check that all states have the correct number of outgoing edges
+        for (s_idx, s) in enumerate(self.state):
+            while len(s[1]) > self.traits[s[0]].N_transitions:
+                self.state[s_idx][1].pop(random.randint(0,len(s[1])-1))
+            while len(s[1]) < self.traits[s[0]].N_transitions:
+                self.state[s_idx][1].append(random.choice(valid_targets))
+            for (t_idx, target) in enumerate(s[1]):
+                if 'initial' in self.traits[s[0]].constraints:
+                    self.state[s_idx][1][t_idx] = random.choice(valid_targets)
+
 
     def __del__(self):
         """
@@ -488,6 +527,10 @@ class Genome(object):
                     child.state[idx] = (state_name, [None if s==state1 else s for s in child.state[idx][1]])
                     child.state[idx] = (state_name, [state1 if s==state2 else s for s in child.state[idx][1]])
                     child.state[idx] = (state_name, [state2 if s==None else s for s in child.state[idx][1]])
+
+                # Do a sanity check on the poor child
+                child.fix()
+
             elif mutation_type == 'replace':
                 mutation_code = 'P'
                 logger.debug(".   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   .   . ")
@@ -541,11 +584,13 @@ class Genome(object):
 
                 logger.debug("Fixing edges...")
                 
-                for (idx, state) in enumerate(child.state):
-                    while len(state[1]) > child.traits[state[0]].N_transitions:
-                        child.state[idx][1].pop(random.randint(0,len(state[1])-1))
-                    while len(state[1]) < child.traits[state[0]].N_transitions:
-                        child.state[idx][1].append(random.choice(child.state)[0])
+                # for (idx, state) in enumerate(child.state):
+                #     while len(state[1]) > child.traits[state[0]].N_transitions:
+                #         child.state[idx][1].pop(random.randint(0,len(state[1])-1))
+                #     while len(state[1]) < child.traits[state[0]].N_transitions:
+                #         child.state[idx][1].append(random.choice(child.state)[0])
+
+                child.fix()
                 
                 logger.debug("Final mutated state graph:")
                 logger.debug(pprint.pformat(child.state))
@@ -567,6 +612,9 @@ class Genome(object):
                         if state_name in state[1]:
                             child.state[idx][1].remove(state_name)
                             child.state[idx][1].append(random.choice(child.state)[0])
+
+                # Do a sanity check on the poor child
+                child.fix()
             
             elif mutation_type == 'reroute':
 
@@ -582,6 +630,9 @@ class Genome(object):
                     num_edges = len(child.state[idx][1])
                     if num_edges > 0:
                         child.state[idx][1][random.randint(0,num_edges-1)] = random.choice(child.state)[0]
+            
+                # Do a sanity check on the poor child
+                child.fix()
             
             elif mutation_type == 'revert':
 
@@ -600,6 +651,9 @@ class Genome(object):
                 
                 child.state = ex_state
         
+                # Do a sanity check on the poor child
+                child.fix()
+            
         # For the observe strategy, pick a random new strategy 25% of the time
         child.observe_strategy = random.choice(observe_strategies.strategy)
         
