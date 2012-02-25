@@ -850,7 +850,7 @@ class Generation(object):
     next_population = None
     sim_parameters = {}
 
-    def __init__(self, sim_parameters = {}, use_cloud=False, empty=False):
+    def __init__(self, sim_parameters = {}, use_cloud=False, use_multiproc=True, empty=False):
         # TODO: Add support for parameter ranges
         self.sim_parameters = sim_parameters
         if not empty:
@@ -870,6 +870,8 @@ class Generation(object):
 
         if not use_cloud:
             cloud.start_simulator()
+
+        self.single_thread = not (use_cloud or use_multiproc)
     
 
     def step_fitness(self):
@@ -897,52 +899,51 @@ class Generation(object):
             genome.simulation = simulate.Simulate(**self.sim_parameters)
             genome.simulation.agent_move = genome.agent_module.move
             genome.simulation.agent_observe_who = genome.agent_module.observe_who
-        
-        # jobs = {}
 
-        # def job_callback(job):
-        #     jobs[job].simulation = cloud.result(job)
-        #     logger.debug('Job %d completed with fitness %.2f.' % (job, 1.0*jobs[job].simulation.total_payoff / jobs[job].simulation.round))
-        #     # logger.debug('    -> %s' % jobs[job].family_tree)
+        jobs = {}
+
+        def job_callback(job):
+            jobs[job].simulation = cloud.result(job)
+            logger.debug('Job %d completed with fitness %.2f.' % (job, 1.0*jobs[job].simulation.total_payoff / jobs[job].simulation.round))
         
-        # def job_error(job):
-        #     logger.debug('Job %d terminated with an error.' % job)
+        def job_error(job):
+            logger.debug('Job %d terminated with an error.' % job)
        
         while len(self.population) > self.BROOD_SIZE:
-            for genome in self.population:
-        #         jobs[cloud.call(genome.simulation.run, N_rounds = self.D_ROUNDS, return_self = True, 
-        #             _callback = [job_callback], _callback_on_error = [job_error], _fast_serialization = 0,
-        #             _type='c1')] = genome
+
+            if self.single_thread:
+                for genome in self.population:
+                    try:
+                        genome.simulation.run(N_rounds = self.D_ROUNDS, return_self = True)
+                    except:
+                        e = sys.exc_info()
+                        logger.debug('----------------------------------------------------------------------')
+                        logger.debug(traceback.format_exc())
+                        logger.debug("State graph:")
+                        logger.debug(pprint.pformat(genome.state))                
+            else:
+                for genome in self.population:
+
+                    jobs[cloud.call(genome.simulation.run, N_rounds = self.D_ROUNDS, return_self = True, 
+                        _callback = [job_callback], _callback_on_error = [job_error], _fast_serialization = 0,
+                        _type='c1')] = genome
+                
+                done = False
+                while not done:
+                    done = True
+                    try:
+                        cloud.join(jobs.keys())
+                    except cloud.CloudException:
+                        done = False
+                        e = sys.exc_info()
+                        logger.debug("More information on Job %d's unexpected termination:" % e[1].jid)
+                        logger.debug("State graph:")
+                        logger.debug(pprint.pformat(jobs[e[1].jid].state))
+                        jobs.pop(e[1].jid)
+
+                for (job, genome) in zip(jid, self.population):
+                    genome.simulation = cloud.result(job)
             
-        #     # Wait for all tasks to finish
-        #     # cloud.join(jid.keys(), ignore_errors=True)
-
-        #     done = False
-        #     while not done:
-        #         done = True
-        #         try:
-        #             cloud.join(jobs.keys())
-        #         except cloud.CloudException:
-        #             done = False
-        #             e = sys.exc_info()
-        #             logger.debug("More information on Job %d's unexpected termination:" % e[1].jid)
-        #             logger.debug("State graph:")
-        #             logger.debug(pprint.pformat(jobs[e[1].jid].state))
-        #             # logger.debug("Family tree: %s" % pprint.pformat(jobs[e[1].jid].family_tree))
-        #             jobs.pop(e[1].jid)
-
-            # for (job, genome) in zip(jid, self.population):
-            #     genome.simulation = cloud.result(job)
-            
-                try:
-                    genome.simulation.run(N_rounds = self.D_ROUNDS, return_self = True)
-                except:
-                    e = sys.exc_info()
-                    logger.debug('----------------------------------------------------------------------')
-                    logger.debug(traceback.format_exc())
-                    logger.debug("State graph:")
-                    logger.debug(pprint.pformat(genome.state))                
-
             self.population.sort(reverse=True, key=lambda genome: 1.0 * genome.simulation.total_payoff)
 
             self.population = [genome for genome in self.population 

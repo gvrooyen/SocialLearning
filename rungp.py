@@ -43,7 +43,7 @@ def rungp(d = 'default', n = 100, cloud = False, multiproc = False, debug = Fals
 	last_run = coll_generations.find_one(sort=[('timestamp', pymongo.DESCENDING)])
 	if last_run:
 		logger.info("Resuming from last logged population")
-		GP = solegene.Generation(sim_parameters=sim_parameters, use_cloud=cloud, empty=True)
+		GP = solegene.Generation(sim_parameters=sim_parameters, use_cloud=cloud, use_multiproc=multiproc, empty=True)
 		start_generation = last_run['generation'] + 1
 		for genome_pickle in last_run['next_population']:
 			GP.population.append(pickle.loads(str(genome_pickle)))
