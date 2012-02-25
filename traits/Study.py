@@ -32,8 +32,9 @@ class Study(Trait):
     def done(self, entryRound,
              roundsAlive, repertoire, historyRounds, historyMoves, historyActs, historyPayoffs, historyDemes, currentDeme,
              canChooseModel, canPlayRefine, multipleDemes):
-        # print entryRound, self.N_rounds, historyRounds[-1]
-        if entryRound + self.N_rounds > historyRounds[-1]:
+        if len(historyRounds) == 0:
+            return False
+        elif entryRound + self.N_rounds > historyRounds[-1]:
             # We haven't made a move yet
             return False
         else:

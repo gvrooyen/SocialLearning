@@ -244,8 +244,10 @@ class InnovationBeat(Trait):
     def __pos__(self):
         """
         Mutation operator for a single trait.
-        The default behavior is to randomly pick an evolvable, and recalculate it on the specified ranges.
-        Subclasses should override this method to implement more directed mutation behaviour.
+        - N_Seq is mutated by increasing or decreasing it by one
+        - Pa is mutated by randomly picking a new value on the range [0,1]
+        - seq_A and seq_B are mutated by picking a random sequence position, and replacing the move pair
+          at that position with a new valid pair
         """
         
         child = self.__class__()
@@ -258,14 +260,29 @@ class InnovationBeat(Trait):
 
             a = self.evolvables[prop][1]
             b = self.evolvables[prop][2]
+            c = getattr(self, prop)
 
-            if self.evolvables[prop][0] == int:
-                X = random.randint(a,b)
-            elif self.evolvables[prop][0] == float:
+            if prop == 'Pa':
                 X = random.uniform(a,b)
+                setattr(child, prop, X)
+            elif prop == 'N_Seq':
+                X = random.choice([-1, +1])
+                setattr(child, prop, c+X)
             else:
-                raise ValueError("Property %s <%s> is not mutatable" % (prop, type(prop))) 
-        
-            setattr(child, prop, X)
+                X = random.randint(0, self.MAX_N_SEQ-1)
+                next_A = random.choice([EXPLOIT, OBSERVE, REFINE])
+                # We want to keep the list carefully synchronised. For example, we don't want both groups A and B
+                # to play OBSERVE simultaneously. The invalid combinations are:
+                #   OBSERVE - OBSERVE
+                #   OBSERVE - REFINE
+                #   REFINE - OBSERVE
+                if next_A == OBSERVE:
+                    next_B = EXPLOIT
+                elif next_A == REFINE:
+                    next_B = random.choice([EXPLOIT, REFINE])
+                else:
+                    next_B = random.choice([EXPLOIT, OBSERVE, REFINE])
+                child.seq_A[X] = next_A
+                child.seq_B[X] = next_B
 
         return child

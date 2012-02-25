@@ -19,6 +19,7 @@ import simulate
 import walkerrandom
 import exemplars
 import copy
+import traceback
 import pprint
 import pygraphviz as dot
 from agents.rendered.exceptions import *
@@ -96,7 +97,7 @@ class Genome(object):
     state = []
 
     # Maximum number of states allowed in a state graph (places a cap on bloat)
-    MAX_STATES = 3
+    MAX_STATES = 15
 
     # Traits (genes) associated with this genome. These are stored as a class-instance dictionary,
     # with classes as keys and specific instances as values. Some traits may be expressed (i.e. in
@@ -194,7 +195,10 @@ class Genome(object):
                 terminal_states.append(new_trait)
             
             else:
-                interem_states.append(new_trait)
+            
+               interem_states.append(new_trait)
+
+        reentrant_states = interem_states + terminal_states
         
         # Next, add the available states to the state graph, initially with empty successor lists
 
@@ -224,7 +228,7 @@ class Genome(object):
         # TODO: Add support for valid_successors and valid_predecessors
 
         N = len(self.state)
-        states_left_to_visit = [state.__class__.__name__ for state in interem_states+terminal_states]  # Add constraints
+        states_left_to_visit = [state.__class__.__name__ for state in reentrant_states]  # Add constraints
 
         for n in xrange(0, N-1):
             if len(states_left_to_visit) == 0:
@@ -320,9 +324,11 @@ class Genome(object):
             move += "\n\n    "+prefix+"if state == '%s':\n" % trait
             move += self.traits[trait].render_move() 
             prefix = "el"
-        
-        move += "\n\n    else:\n"
-        move +=     "        raise AgentError('No such state: %s' % state)\n"
+
+        if self.state != []:
+            # The following causes invalid syntax if the state graph is empty for some or other reason        
+            move += "\n\n    else:\n"
+            move +=     "        raise AgentError('No such state: %s' % state)\n"
         
         result = string.Template(render_template)
         # file_in = StringIO.StringIO(result.substitute(move = move, observe = observe))
@@ -838,42 +844,51 @@ class Generation(object):
             genome.simulation.agent_move = genome.agent_module.move
             genome.simulation.agent_observe_who = genome.agent_module.observe_who
         
-        jobs = {}
+        # jobs = {}
 
-        def job_callback(job):
-            jobs[job].simulation = cloud.result(job)
-            logger.debug('Job %d completed with fitness %.2f.' % (job, 1.0*jobs[job].simulation.total_payoff / jobs[job].simulation.round))
-            # logger.debug('    -> %s' % jobs[job].family_tree)
+        # def job_callback(job):
+        #     jobs[job].simulation = cloud.result(job)
+        #     logger.debug('Job %d completed with fitness %.2f.' % (job, 1.0*jobs[job].simulation.total_payoff / jobs[job].simulation.round))
+        #     # logger.debug('    -> %s' % jobs[job].family_tree)
         
-        def job_error(job):
-            logger.debug('Job %d terminated with an error.' % job)
+        # def job_error(job):
+        #     logger.debug('Job %d terminated with an error.' % job)
        
         while len(self.population) > self.BROOD_SIZE:
             for genome in self.population:
-                jobs[cloud.call(genome.simulation.run, N_rounds = self.D_ROUNDS, return_self = True, 
-                    _callback = [job_callback], _callback_on_error = [job_error], _fast_serialization = 0,
-                    _type='c1')] = genome
+        #         jobs[cloud.call(genome.simulation.run, N_rounds = self.D_ROUNDS, return_self = True, 
+        #             _callback = [job_callback], _callback_on_error = [job_error], _fast_serialization = 0,
+        #             _type='c1')] = genome
             
-            # Wait for all tasks to finish
-            # cloud.join(jid.keys(), ignore_errors=True)
+        #     # Wait for all tasks to finish
+        #     # cloud.join(jid.keys(), ignore_errors=True)
 
-            done = False
-            while not done:
-                done = True
-                try:
-                    cloud.join(jobs.keys())
-                except cloud.CloudException:
-                    done = False
-                    e = sys.exc_info()
-                    logger.debug("More information on Job %d's unexpected termination:" % e[1].jid)
-                    logger.debug("State graph:")
-                    logger.debug(pprint.pformat(jobs[e[1].jid].state))
-                    # logger.debug("Family tree: %s" % pprint.pformat(jobs[e[1].jid].family_tree))
-                    jobs.pop(e[1].jid)
+        #     done = False
+        #     while not done:
+        #         done = True
+        #         try:
+        #             cloud.join(jobs.keys())
+        #         except cloud.CloudException:
+        #             done = False
+        #             e = sys.exc_info()
+        #             logger.debug("More information on Job %d's unexpected termination:" % e[1].jid)
+        #             logger.debug("State graph:")
+        #             logger.debug(pprint.pformat(jobs[e[1].jid].state))
+        #             # logger.debug("Family tree: %s" % pprint.pformat(jobs[e[1].jid].family_tree))
+        #             jobs.pop(e[1].jid)
 
             # for (job, genome) in zip(jid, self.population):
             #     genome.simulation = cloud.result(job)
             
+                try:
+                    genome.simulation.run(N_rounds = self.D_ROUNDS, return_self = True)
+                except:
+                    e = sys.exc_info()
+                    logger.debug('----------------------------------------------------------------------')
+                    logger.debug(traceback.format_exc())
+                    logger.debug("State graph:")
+                    logger.debug(pprint.pformat(genome.state))                
+
             self.population.sort(reverse=True, key=lambda genome: 1.0 * genome.simulation.total_payoff)
 
             self.population = [genome for genome in self.population 
