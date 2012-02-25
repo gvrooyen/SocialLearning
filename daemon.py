@@ -34,7 +34,7 @@ while True:
 		else:
 			print("[%s %s] Completed task: %s" % (datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S'),
 				os.uname()[1], msg_body))
-			task_queue.delete_message(msg)
+			task_queue.delete_message(msg[0])
 
 	logger.info("[%s %s] Task queue is empty. Sleeping for 60 seconds before trying again." %
 		(datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S'), os.uname()[1]))
