@@ -940,9 +940,6 @@ class Generation(object):
                         logger.debug("State graph:")
                         logger.debug(pprint.pformat(jobs[e[1].jid].state))
                         jobs.pop(e[1].jid)
-
-                for (job, genome) in zip(jid, self.population):
-                    genome.simulation = cloud.result(job)
             
             self.population.sort(reverse=True, key=lambda genome: 1.0 * genome.simulation.total_payoff)
 
