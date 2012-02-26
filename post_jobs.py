@@ -4,6 +4,7 @@ import boto
 import json
 import argparse
 import pymongo
+import random
 
 MASTER_SERVER = 'sl-master.dyndns-server.com'
 MONGO_USER = 'sociallearning'
@@ -60,12 +61,19 @@ print("Current progress:")
 pg = assess_progress()
 print pg
 
+jobs = []
+
 for (idx,m) in enumerate(pg):
 	for i in xrange(0, MAX_GENERATIONS-pg[m][1]):
 		msg = Message()
 		msg.set_body(json.dumps(['-d ' + m + str(pg[m][1])] + modes[idx][1]))
-		task_queue.write(msg)
+		jobs.append(msg)
 	for i in xrange(m[1][0]+1, MAX_DEMES):
 		msg = Message()
 		msg.set_body(json.dumps(['-d ' + m + str(i)] + modes[m]))
-		task_queue.write(msg)
+		jobs.append(msg)
+
+random.shuffle(jobs)
+for m in jobs:
+	task_queue.write(m)
+
