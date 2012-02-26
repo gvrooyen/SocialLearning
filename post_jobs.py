@@ -27,7 +27,8 @@ modes = [
 	('ORD', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative']),
 	('ex_BFD', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=BifurcateDiscrete']),
 	('ex_CPD', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=ContinuousProfessionalDevelopment']),
-	('ex_BTN', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=Beatnik'])
+	('ex_BTN', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=Beatnik'],
+	('ex_BIS', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=BeatnikInSpace']))
 ]
 
 def assess_progress():

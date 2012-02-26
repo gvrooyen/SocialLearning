@@ -129,6 +129,25 @@ def Beatnik():
 
 	return (self_traits, state)
 
+def BeatnikInSpace():
+	self_traits = {}
+
+	self_traits['Pioneering'] = traits.Pioneering.Pioneering()
+	self_traits['InnovationBeatSpatial'] = traits.InnovationBeatSpatial.InnovationBeatSpatial()
+
+	T = traits.Study.Study()
+	T.N_rounds = 14
+	T.Pi = 0.6465
+	T.Po = 0.2549
+	T.Pr = 0.6606
+	self_traits['Study'] = T
+
+	state = [('Pioneering', ['InnovationBeat']),
+		     ('InnovationBeat', ['Study']),
+		     ('Study', ['InnovationBeat'])
+		    ]
+
+	return (self_traits, state)
 
 
-exemplar_list = [BifurcateDiscrete, Simple, SpecialPioneers, ContinuousProfessionalDevelopment, Beatnik]
+exemplar_list = [BifurcateDiscrete, Simple, SpecialPioneers, ContinuousProfessionalDevelopment, Beatnik, BeatnikInSpace]
