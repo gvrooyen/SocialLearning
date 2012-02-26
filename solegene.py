@@ -266,7 +266,7 @@ class Genome(object):
         # Zero valid targets is only allowable if we have a single state with no output transitions
         while (len(valid_targets) == 0) and (self.traits[self.state[0][0]].N_transitions > 0):
             # Add another random state from the unused traits
-            new_state = random.choice(child.traits.keys())
+            new_state = random.choice(self.traits.keys())
             if 'initial' not in self.traits[new_state].constraints:
                 self.state[idx][1].append(new_state)
                 valid_targets.append(new_state)
