@@ -38,6 +38,8 @@ def change_passphrase():
 	run('ssh-keygen -p')
 
 @roles('servant')
-def start_daemon():
-	with cd('~/devel/SocialLearning'):
-		run('./daemon.sh')
+def flush_logs():
+	try:
+		run('rm -rf ~/.picloud/datalogs/Simulation')
+	except:
+		pass

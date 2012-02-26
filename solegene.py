@@ -40,7 +40,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 logger.addHandler(NullHandler())
 
-MAX_STATE_RECURSION = 16
+MAX_STATE_RECURSION = 128
 
 render_template = \
 """# Automatically rendered agent code
@@ -95,6 +95,9 @@ class Genome(object):
     #     (Trait3, [])
     #   ]
     state = []
+
+    # Set to True to disable graph evolution, and to only evolve traits
+    static_graph = False
 
     # Maximum number of states allowed in a state graph (places a cap on bloat)
     MAX_STATES = 15
@@ -433,7 +436,10 @@ class Genome(object):
         # Also, it provides some stability to "sensible" state graphs that may only need to evolve their
         # trait parameters further in order to dominate.
 
-        crossover_strategy = random.random()
+        if self.static_graph:
+            crossover_strategy = 0.0
+        else:
+            crossover_strategy = random.random()
 
         P1 = self.state
         P2 = other.state
@@ -486,6 +492,8 @@ class Genome(object):
             # Mutate to a random strategy
             child.observe_strategy = random.choice(observe_strategies.strategy)
 
+        child.static_graph = self.static_graph
+
         return child
 
 
@@ -513,7 +521,7 @@ class Genome(object):
         for key in self.traits.keys():
             child.traits[key] = +self.traits[key]
         
-        if random.random() > 0.5:
+        if (not self.static_graph) and (random.random() > 0.5):
             mutation_type = random.choice(['swap', 'replace', 'remove', 'reroute', 'revert'])
             if mutation_type == 'swap':
                 mutation_code = 'S'
@@ -657,6 +665,8 @@ class Genome(object):
         # For the observe strategy, pick a random new strategy 25% of the time
         child.observe_strategy = random.choice(observe_strategies.strategy)
         
+        child.static_graph = self.static_graph
+
         # child.family_tree = '(%s*%s)' % (self.family_tree, mutation_code)
         return child
 
@@ -849,16 +859,24 @@ class Generation(object):
     population = []
     next_population = None
     sim_parameters = {}
+    static_graphs = False
 
-    def __init__(self, sim_parameters = {}, use_cloud=False, use_multiproc=True, empty=False):
+    def __init__(self, sim_parameters = {}, use_cloud=False, use_multiproc=True, empty=False, exemplar=None):
         # TODO: Add support for parameter ranges
         self.sim_parameters = sim_parameters
+        if exemplar:
+            self.static_graphs = True
         if not empty:
             for i in xrange(0, self.POPULATION_SIZE):
                 new_genome = Genome()
-                # Replace 20% of new individuals with "exemplars": pre-designed individuals that we believe will
-                # perform well.
-                if random.random() < 0.2:
+                if exemplar:
+                    # An exemplar state graph is being forced upon this individual
+                    (self_traits, state) = getattr(exemplars, exemplar)()
+                    new_genome.traits.update(self_traits)
+                    new_genome.state = state
+                elif random.random() < 0.2:
+                    # Replace 20% of new individuals with "exemplars": pre-designed individuals that we believe will
+                    # perform well.
                     idx = random.randint(0, len(exemplars.exemplar_list)-1)
                     # new_genome.family_tree = string.lowercase[idx]
                     (self_traits, state) = exemplars.exemplar_list[idx]()
@@ -972,10 +990,12 @@ class Generation(object):
             copy._deepcopy_dispatch[ModuleType] = lambda x, m: x
 
             p1 = random.choice(self.population)
+            p1.static_graph = self.static_graphs
             r = random.random()
             if r < self.P_CROSSOVER:
                 # Perform crossover mutation. Firstly, pick a second parent.
                 p2 = random.choice(self.population)
+                p2.static_graph = self.static_graphs
                 # Add the crossover of the two parents to the next generation.
                 self.next_population.append(copy.deepcopy(p1+p2))
             elif r < (self.P_CROSSOVER + self.P_MUTATION):

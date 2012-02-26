@@ -14,7 +14,7 @@ AWS_SECRET = 'Bb95dWQmqtQBGSh8UwSrVE2Z4luPkfv2eoUGwiW7'
 
 
 MAX_DEMES = 10
-MAX_GENERATIONS = 30
+MAX_GENERATIONS = 40
 
 modes = [
 	('ord', []),
@@ -31,7 +31,7 @@ def assess_progress():
 	"""
 	Count the number of demes simulated for each mode, as well as the number of generations
 	in each mode's final deme. Returns a dictionary in the following form:
-	   dict[mode] = (number_of_demes, generations_in_last_deme)
+	   dict[mode] = [gen0, gen1, ...]
 	"""
 	conn = pymongo.Connection(MASTER_SERVER)
 	db = conn.SocialLearning
@@ -42,12 +42,12 @@ def assess_progress():
 	result = {}
 
 	for m in modes:
-		subm = [c for c in coll_names if c.startswith('gp_'+m[0])]
-
-		cn = 'gp_' + m[0] + str(len(subm))
-		coll = db[cn]
-
-		result[m[0]] = (len(subm), coll.count())
+		result[m[0]] = [0]*MAX_DEMES
+		for subm in [c for c in coll_names if c.startswith('gp_ '+m[0])]:
+			idx = int(subm[7:])
+			if idx < MAX_DEMES:
+				coll = db[subm]
+				result[m[0]][idx] = coll.count()
 
 	return result
 
@@ -63,17 +63,35 @@ if task_queue.count() > 0:
 
 jobs = []
 
-for (idx,m) in enumerate(pg):
-	for i in xrange(0, MAX_GENERATIONS-pg[m][1]):
-		msg = Message()
-		msg.set_body(json.dumps(['-d ' + m + str(pg[m][1])] + modes[idx][1]))
-		jobs.append(msg)
-	for i in xrange(pg[m][0]+1, MAX_DEMES):
-		msg = Message()
-		msg.set_body(json.dumps(['-d ' + m + str(i)] + modes[idx][1]))
-		jobs.append(msg)
+# The ideal execution order for tasks, is to fill up lower-order demes first, and to cycle
+# through modes as much as possible to prevent servants from duplication generations
+# (it's not wasted effort, but it's not ideal either)
 
-random.shuffle(jobs)
+for n_bucket in xrange(0, MAX_DEMES):
+	nothing_changed = False
+	while not nothing_changed:
+		nothing_changed = True
+		for m in modes:
+			if pg[m[0]][n_bucket] < MAX_GENERATIONS:
+				print(m[0] + str(n_bucket))
+				msg = Message()
+				msg.set_body(json.dumps(['-d ' + m[0] + str(n_bucket)] + m[1]))
+				jobs.append(msg)
+				nothing_changed = False
+				pg[m[0]][n_bucket] += 1
+
+# for (idx,m) in enumerate(pg):
+# 	for i in xrange(0, MAX_GENERATIONS-pg[m][1]):
+# 		msg = Message()
+# 		msg.set_body(json.dumps(['-d ' + m + str(pg[m][1])] + modes[idx][1]))
+# 		jobs.append(msg)
+# 	for i in xrange(pg[m][0]+1, MAX_DEMES):
+# 		msg = Message()
+# 		msg.set_body(json.dumps(['-d ' + m + str(i)] + modes[idx][1]))
+# 		jobs.append(msg)
+
+# random.shuffle(jobs)
+
 for m in jobs:
 	task_queue.write(m)
 

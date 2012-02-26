@@ -10,7 +10,7 @@ import cPickle as pickle
 
 def rungp(d = 'default', n = 100, cloud = False, multiproc = False, debug = False, mode_spatial = False,
 		   mode_cumulative = False, mode_model_bias = False, N_observe = 3, P_c = 0.001, P_copyFail = 0.1,
-		   N_migrate = 5, r_max = 100):
+		   N_migrate = 5, r_max = 100, exemplar = None):
 
 	logger = logging.getLogger(__name__)
 	logger.addHandler(logging.StreamHandler())
@@ -49,7 +49,7 @@ def rungp(d = 'default', n = 100, cloud = False, multiproc = False, debug = Fals
 			GP.population.append(pickle.loads(str(genome_pickle)))
 	else:
 		logger.info("Initialising new population")
-		GP = solegene.Generation(sim_parameters=sim_parameters, use_cloud=cloud)
+		GP = solegene.Generation(sim_parameters=sim_parameters, use_cloud=cloud, exemplar=exemplar)
 
 #	for i in xrange(start_generation, args.n):
 	if start_generation < n:
@@ -156,10 +156,13 @@ if __name__ == '__main__':
 						help="Number of agents that migrate demes each round when --mode_spatial is active")
 	parser.add_argument('--r_max', type=int, default=simulate.R_MAX,
 						help="Maximum refinement gain when --mode_cumulative is active")                        
+	parser.add_argument('--exemplar', type=str, default='default',
+						help="Force all agents to have a single examplar's state graph")
 	args = parser.parse_args()
 
 	rungp(d = args.d, n = args.n, cloud = args.cloud, multiproc = args.multiproc, debug = args.debug,
 		   mode_spatial = args.mode_spatial, mode_cumulative = args.mode_cumulative,
 		   mode_model_bias = args.mode_model_bias, N_observe = args.N_observe, P_c = args.P_c,
-		   P_copyFail = args.P_copyFail, N_migrate = args.N_migrate, r_max = args.r_max)
+		   P_copyFail = args.P_copyFail, N_migrate = args.N_migrate, r_max = args.r_max,
+		   exemplar = args.exemplar)
 
