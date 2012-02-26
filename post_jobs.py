@@ -20,11 +20,11 @@ modes = [
 	('ord', []),
 	('orD', ['--mode_spatial']),
 	('oRd', ['--mode_cumulative']),
-	('oRD', ['--mode_spatial', 'mode_cumulative']),
+	('oRD', ['--mode_spatial', '--mode_cumulative']),
 	('Ord', ['--mode_model_bias']),
 	('OrD', ['--mode_model_bias', '--mode_spatial']),
 	('ORd', ['--mode_model_bias', '--mode_cumulative']),
-	('ORD', ['--mode_model_bias', '--mode_spatial', 'mode_cumulative'])
+	('ORD', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative'])
 ]
 
 def assess_progress():
