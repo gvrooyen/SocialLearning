@@ -115,4 +115,20 @@ def ContinuousProfessionalDevelopment():
 
 	return (self_traits, state)
 
-exemplar_list = [BifurcateDiscrete, Simple, SpecialPioneers, ContinuousProfessionalDevelopment]
+
+def Beatnik():
+
+	self_traits = {}
+
+	self_traits['Pioneering'] = traits.Pioneering.Pioneering()
+	self_traits['InnovationBeat'] = traits.InnovationBeat.InnovationBeat()
+
+	state = [('Pioneering', ['InnovationBeat']),
+		     ('InnovationBeat', [])
+		    ]
+
+	return (self_traits, state)
+
+
+
+exemplar_list = [BifurcateDiscrete, Simple, SpecialPioneers, ContinuousProfessionalDevelopment, Beatnik]
