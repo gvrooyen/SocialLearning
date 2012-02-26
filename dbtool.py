@@ -137,7 +137,7 @@ def scatter(db):
 			Hannibal = champ
 
 	the_A_team['BOG'] = Hannibal
-    the_A_team['timestamp'] = datetime.datetime.now()
+	the_A_team['timestamp'] = datetime.datetime.now()
 
 	the_A_team['generation'] = 0
 	the_A_team['sim_parameters'] = Hannibal['sim_parameters']
@@ -149,7 +149,7 @@ def scatter(db):
 			print("Seeding %s" % coll_name)
 			db.drop(coll_name)
 			coll.insert(the_A_team)
-			
+
 
 if __name__ == '__main__':
 
