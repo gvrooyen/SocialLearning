@@ -12,8 +12,10 @@ AWS_SECRET = 'Bb95dWQmqtQBGSh8UwSrVE2Z4luPkfv2eoUGwiW7'
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.DEBUG)
-logger.setFormatter(logging.Formatter("[%s %s] %%(message)s" % (datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S'),
-				os.uname()[1])))
+
+def logformat(message):
+	return "[%s %s] %s" % (datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S'),
+				os.uname()[1], message)
 
 conn = SQSConnection(AWS_ACCESS, AWS_SECRET)
 
@@ -25,19 +27,19 @@ while True:
 		msg = task_queue.get_messages()
 		try:
 			msg_body = msg[0].get_body()
-			logger.info("Starting task: %s" % msg_body)
+			logger.info(logformat("Starting task: %s" % msg_body))
 			args = json.loads(msg_body)
 			output = subprocess.check_call(['python', '-OO', 'rungp.py', '-m'] + args)
 		except subprocess.CalledProcessError:
-			logger.error("Error executing task: %s" % msg_body)
+			logger.error(logformat("Error executing task: %s" % msg_body))
 		else:
-			logger.info("Completed task: %s" % msg_body)
+			logger.info(logformat("Completed task: %s" % msg_body))
 			task_queue.delete_message(msg[0])
 
 		try:
 			output = subprocess.check_call(['rm', '-rf', '~/.picloud/datalogs/Simulation'])
 		except:
-			logger.error("Could not remove picloud datalogs.")
+			logger.error(logformat("Could not remove picloud datalogs."))
 
-	logger.info("Task queue is empty. Sleeping for 60 seconds before trying again.")
+	logger.info(logformat("Task queue is empty. Sleeping for 60 seconds before trying again."))
 	time.sleep(60)
