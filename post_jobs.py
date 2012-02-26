@@ -54,12 +54,12 @@ def assess_progress():
 conn = SQSConnection(AWS_ACCESS, AWS_SECRET)
 task_queue = conn.get_queue('GP_tasks')
 
-if task_queue.count() > 0:
-	raise RuntimeError("There are still tasks to be processed.")
-
 print("Current progress:")
 pg = assess_progress()
 print pg
+
+if task_queue.count() > 0:
+	raise RuntimeError("There are still tasks to be processed.")
 
 jobs = []
 

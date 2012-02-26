@@ -24,7 +24,8 @@ task_queue = conn.get_queue('GP_tasks')
 while True:
 
 	while task_queue.count() > 0:
-		msg = task_queue.get_messages()
+		# Give the machine two hours to complete this task before letting the message lapse back to the queue
+		msg = task_queue.get_messages(visibility_timeout = 60*60*2)
 		try:
 			msg_body = msg[0].get_body()
 			logger.info(logformat("Starting task: %s" % msg_body))
