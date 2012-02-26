@@ -84,11 +84,27 @@ def ContinuousProfessionalDevelopment():
 
 	self_traits = {}
 
-	self_traits['PioneeringBi'] = traits.PioneeringBi.PioneeringBi()
+	T = traits.PioneeringBi.PioneeringBi()
+	T.N_rounds = 14
+	self_traits['PioneeringBi'] = T
+
 	self_traits['ExploitGreedy'] = traits.ExploitGreedy.ExploitGreedy()
-	self_traits['Study'] = traits.Study.Study()
+
+	T = traits.Study.Study()
+	T.N_rounds = 14
+	T.Pi = 0.6465
+	T.Po = 0.2549
+	T.Pr = 0.6606
+	self_traits['Study'] = T
+
 	self_traits['ExploitGreedyB'] = traits.ExploitGreedyB.ExploitGreedyB()
-	self_traits['StudyB'] = traits.StudyB.StudyB()
+
+	T = traits.StudyB.StudyB()
+	T.N_rounds = 0
+	T.Pi = 0.1487
+	T.Po = 0.1435
+	T.Pr = 0.3003
+	self_traits['StudyB'] = T
 
 	state = [('PioneeringBi', ['ExploitGreedy', 'StudyB']),
 		     ('ExploitGreedy', ['Study']),

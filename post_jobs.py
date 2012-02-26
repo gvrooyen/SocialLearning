@@ -24,7 +24,9 @@ modes = [
 	('Ord', ['--mode_model_bias']),
 	('OrD', ['--mode_model_bias', '--mode_spatial']),
 	('ORd', ['--mode_model_bias', '--mode_cumulative']),
-	('ORD', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative'])
+	('ORD', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative']),
+	('ex_BFD', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=BifurcateDiscrete']),
+	('ex_CPD', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=ContinuousProfessionalDevelopment'])
 ]
 
 def assess_progress():
