@@ -156,7 +156,7 @@ if __name__ == '__main__':
 						help="Number of agents that migrate demes each round when --mode_spatial is active")
 	parser.add_argument('--r_max', type=int, default=simulate.R_MAX,
 						help="Maximum refinement gain when --mode_cumulative is active")                        
-	parser.add_argument('--exemplar', type=str, default='default',
+	parser.add_argument('--exemplar', type=str, default=None,
 						help="Force all agents to have a single examplar's state graph")
 	args = parser.parse_args()
 

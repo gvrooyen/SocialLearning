@@ -10,7 +10,8 @@ env.roledefs = {
 				'ec2-user@ec2-72-44-53-225.compute-1.amazonaws.com',
 				'ec2-user@ec2-107-22-142-165.compute-1.amazonaws.com',
 				'ec2-user@ec2-107-22-53-205.compute-1.amazonaws.com',
-				'ec2-user@ec2-23-20-67-140.compute-1.amazonaws.com'
+				'ec2-user@ec2-23-20-67-140.compute-1.amazonaws.com',
+				'ec2-user@ec2-107-22-63-205.compute-1.amazonaws.com'
                 ]
 }
 
@@ -38,8 +39,14 @@ def change_passphrase():
 	run('ssh-keygen -p')
 
 @roles('servant')
+@parallel
 def flush_logs():
 	try:
 		run('rm -rf ~/.picloud/datalogs/Simulation')
 	except:
 		pass
+
+@roles(['master', 'servant'])
+@parallel
+def disk_usage():
+	run('df -h /')
