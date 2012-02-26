@@ -145,7 +145,7 @@ def scatter(db):
 	for coll_name in coll_names:
 		print("Processing %s..." % coll_name)
 		coll = db[coll_name]
-		if coll.count <= GENERATION_THRESHOLD:
+		if coll.count() <= GENERATION_THRESHOLD:
 			print("Seeding %s" % coll_name)
 			db.drop(coll_name)
 			coll.insert(the_A_team)
