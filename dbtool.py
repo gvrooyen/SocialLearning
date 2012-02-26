@@ -2,12 +2,14 @@ import argparse
 import pymongo
 import random
 import pprint
+import datetime
 
 MASTER_SERVER = 'sl-master.dyndns-server.com'
 MONGO_USER = 'sociallearning'
 MONGO_PASSWORD = 'twasbrilligandtheslithytoves'
 
 MAX_DEMES = 10
+GENERATION_THRESHOLD = 5
 
 modes = ('ord', 'orD', 'oRd', 'oRD', 'Ord', 'OrD', 'ORd', 'ORD', 'ex_BFD', 'ex_CPD', 'ex_BTN')
 
@@ -96,28 +98,64 @@ def gather(db):
 	for coll_name in coll_names:
 		print("Processing %s..." % coll_name)
 		coll = db[coll_name]
-		fitness = -1.0
-		champ = None
-		for i in coll.find():
-			if i['BOG']['fitness'] > fitness:
-				champ = i
-				champ_coll = coll_name
-				fitness = i['BOG']['fitness']
-		if champ:
-			print("Champion found, fitness %.1f" % fitness)
-			coll = db.champions
-			bog = champ['BOG']
-			bog['collection'] = champ_coll
-			bog['generation'] = champ['generation']
-			bog['sim_parameters'] = champ['sim_parameters']
-			coll.insert(bog)
+		if coll.count > GENERATION_THRESHOLD:
+			fitness = -1.0
+			champ = None
+			for i in coll.find():
+				if i['BOG']['fitness'] > fitness:
+					champ = i
+					champ_coll = coll_name
+					fitness = i['BOG']['fitness']
+			if champ:
+				print("Champion found, fitness %.1f" % fitness)
+				coll = db.champions
+				bog = champ['BOG']
+				bog['collection'] = champ_coll
+				bog['generation'] = champ['generation']
+				bog['sim_parameters'] = champ['sim_parameters']
+				coll.insert(bog)
 
+
+def scatter(db):
+	"""
+	Scan all demes (collections starting with 'gp_') that are smaller to or equal than GENERATION_THRESHOLD, and
+	empty that collection. Then replace it with a fake first generation straight from the 'champions' collection.
+	"""
+
+	coll_names = [c for c in db.collection_names() if c.startswith('gp_')]
+
+	the_A_team = {}
+	the_A_team['next_population'] = []
+
+	Hannibal = None
+	fitness = -1.0
+
+	coll = db.champions
+	for champ in coll.find():
+		the_A_team['next_population'].append(champ['pickle'])
+		if champ['fitness'] > fitness:
+			Hannibal = champ
+
+	the_A_team['BOG'] = Hannibal
+    the_A_team['timestamp'] = datetime.datetime.now()
+
+	the_A_team['generation'] = 0
+	the_A_team['sim_parameters'] = Hannibal['sim_parameters']
+
+	for coll_name in coll_names:
+		print("Processing %s..." % coll_name)
+		coll = db[coll_name]
+		if coll.count <= GENERATION_THRESHOLD:
+			print("Seeding %s" % coll_name)
+			db.drop(coll_name)
+			coll.insert(the_A_team)
+			
 
 if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser(description="Monitor and manage the SocialLearning genetic programming database")
 
-	parser.add_argument('command', choices=['stats', 'champ', 'fitness', 'gather'],
+	parser.add_argument('command', choices=['stats', 'champ', 'fitness', 'gather', 'scatter'],
 						help="Operation to perform.")
 	parser.add_argument('-d', '--deme', type=str, default=None,
 		help="Mode (e.g. 'orD') or deme (e.g. 'orD3') on which to run the command")
@@ -138,3 +176,6 @@ if __name__ == '__main__':
 		print_fitness(db)
 	elif args.command == 'gather':
 		gather(db)
+	elif args.command == 'scatter':
+		scatter(db)
+
