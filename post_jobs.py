@@ -68,9 +68,9 @@ for (idx,m) in enumerate(pg):
 		msg = Message()
 		msg.set_body(json.dumps(['-d ' + m + str(pg[m][1])] + modes[idx][1]))
 		jobs.append(msg)
-	for i in xrange(m[1][0]+1, MAX_DEMES):
+	for i in xrange(pg[m][0]+1, MAX_DEMES):
 		msg = Message()
-		msg.set_body(json.dumps(['-d ' + m + str(i)] + modes[m]))
+		msg.set_body(json.dumps(['-d ' + m + str(i)] + modes[idx][1]))
 		jobs.append(msg)
 
 random.shuffle(jobs)
