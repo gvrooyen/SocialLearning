@@ -120,8 +120,16 @@ def Beatnik():
 
 	self_traits = {}
 
-	self_traits['Pioneering'] = traits.Pioneering.Pioneering()
-	self_traits['InnovationBeat'] = traits.InnovationBeat.InnovationBeat()
+	T = traits.Pioneering.Pioneering()
+	T.N_rounds = 8
+	self_traits['Pioneering'] = T
+
+	T = traits.InnovationBeat.InnovationBeat()
+	T.N_Seq = 8
+	T.Pa = 0.4187
+	T.seq_A = [1, 1, 1, 1, 1, 2, 1, 1, 1, 1]
+	T.seq_B = [0, 0, 2, 1, 1, 1, 1, 1, 0, 2]
+	self_traits['InnovationBeat'] = T
 
 	state = [('Pioneering', ['InnovationBeat']),
 		     ('InnovationBeat', [])
@@ -132,8 +140,16 @@ def Beatnik():
 def BeatnikInSpace():
 	self_traits = {}
 
-	self_traits['Pioneering'] = traits.Pioneering.Pioneering()
-	self_traits['InnovationBeatSpatial'] = traits.InnovationBeatSpatial.InnovationBeatSpatial()
+	T = traits.Pioneering.Pioneering()
+	T.N_rounds = 8
+	self_traits['Pioneering'] = T
+
+	T = traits.InnovationBeatSpatial.InnovationBeatSpatial()
+	T.N_Seq = 8
+	T.Pa = 0.4187
+	T.seq_A = [1, 1, 1, 1, 1, 2, 1, 1, 1, 1]
+	T.seq_B = [0, 0, 2, 1, 1, 1, 1, 1, 0, 2]
+	self_traits['InnovationBeatSpatial'] = T
 
 	T = traits.Study.Study()
 	T.N_rounds = 14
