@@ -155,10 +155,9 @@ def copy(db, source, dest):
 	Copy an entire collection. Any previous content in the destination collection is lost.
 	"""
 
-	db.drop(dest)
-
 	coll_source = db[source]
 	coll_dest = db[dest]
+	coll_dest.drop()
 
 	for item in coll_source.find():
 		coll_dest.insert(item)
