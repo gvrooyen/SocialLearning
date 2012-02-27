@@ -19,11 +19,11 @@ default_ParameterRange = {'mode_spatial': (bool, None),
 ParameterRange = {'mode_spatial': (bool, None),
                   'mode_cumulative': (bool, None),
                   'mode_model_bias': (bool, None),
-                  'N_observe': (int, 5, 5),
+                  'N_observe': (int, 1, 10),
                   'P_c': (float, 0.001, 0.4),
                   'P_copyFail': (float, 0.0, 0.5),
-                  'N_migrate': (int, 10, 10),
-                  'r_max': (int, 100, 100)
+                  'N_migrate': (int, 1, 20),
+                  'r_max': (int, 10, 1000)
                  }
 
 

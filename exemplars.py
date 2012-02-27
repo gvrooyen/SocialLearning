@@ -137,6 +137,7 @@ def Beatnik():
 
 	return (self_traits, state)
 
+
 def BeatnikInSpace():
 	self_traits = {}
 
@@ -166,4 +167,22 @@ def BeatnikInSpace():
 	return (self_traits, state)
 
 
-exemplar_list = [BifurcateDiscrete, Simple, SpecialPioneers, ContinuousProfessionalDevelopment, Beatnik, BeatnikInSpace]
+def GoodReferences():
+	self_traits = {}
+
+	self_traits['Pioneering'] = traits.Pioneering.Pioneering()
+
+	T = traits.Reference.Reference()
+	T.Pr = 0.05
+	T.N_innovate = 1
+	T.threshold = 1.0
+	self_traits['Reference'] = T
+
+	state = [('Pioneering', ['Reference']),
+			 ('Reference', [])
+	]
+
+	return (self_traits, state)
+
+
+exemplar_list = [BifurcateDiscrete, Simple, SpecialPioneers, ContinuousProfessionalDevelopment, Beatnik, BeatnikInSpace, GoodReferences]
