@@ -150,15 +150,30 @@ def scatter(db):
 			coll.drop()
 			coll.insert(the_A_team)
 
+def copy(db, source, dest):
+	"""
+	Copy an entire collection. Any previous content in the destination collection is lost.
+	"""
+
+	db.drop(dest)
+
+	coll_source = db[source]
+	coll_dest = db[dest]
+
+	for item in coll_source.find():
+		coll_dest.insert(item)
+		
 
 if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser(description="Monitor and manage the SocialLearning genetic programming database")
 
-	parser.add_argument('command', choices=['stats', 'champ', 'fitness', 'gather', 'scatter'],
+	parser.add_argument('command', choices=['stats', 'champ', 'fitness', 'gather', 'scatter', 'copy'],
 						help="Operation to perform.")
-	parser.add_argument('-d', '--deme', type=str, default=None,
-		help="Mode (e.g. 'orD') or deme (e.g. 'orD3') on which to run the command")
+	parser.add_argument('source', type=str, default=None,
+		help="Source deme for the 'copy' and 'champ' commands")
+	parser.add_argument('dest', type=str, default=None,
+		help = "Destination deme for the 'copy' command")
 
 	args = parser.parse_args()
 
@@ -169,13 +184,16 @@ if __name__ == '__main__':
 	if args.command == 'stats':
 		print_stats(db)
 	elif args.command == 'champ':
-		if not args.deme:
-			parser.error("The 'champ' command requires the -d/--deme argument to be specified.")
-		print_champ(db, args.deme)
+		if not args.source:
+			parser.error("The 'champ' command requires a source deme to be specified.")
+		print_champ(db, args.source)
 	elif args.command == 'fitness':
 		print_fitness(db)
 	elif args.command == 'gather':
 		gather(db)
 	elif args.command == 'scatter':
 		scatter(db)
-
+	elif args.command == 'copy':
+		if (not args.source) or (not args.dest):
+			parser.error("The 'copy' command requires that both a source and destination deme be specified.")
+		copy(db, args.source, args.dest)
