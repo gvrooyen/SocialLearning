@@ -158,9 +158,9 @@ def BeatnikInSpace():
 	T.Pr = 0.6606
 	self_traits['Study'] = T
 
-	state = [('Pioneering', ['InnovationBeat']),
-		     ('InnovationBeat', ['Study']),
-		     ('Study', ['InnovationBeat'])
+	state = [('Pioneering', ['InnovationBeatSpatial']),
+		     ('InnovationBeatSpatial', ['Study']),
+		     ('Study', ['InnovationBeatSpatial'])
 		    ]
 
 	return (self_traits, state)

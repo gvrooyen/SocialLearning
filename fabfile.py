@@ -12,7 +12,14 @@ env.roledefs = {
 				'ec2-user@ec2-107-22-53-205.compute-1.amazonaws.com',
 				'ec2-user@ec2-23-20-67-140.compute-1.amazonaws.com',
 				'ec2-user@ec2-107-22-63-205.compute-1.amazonaws.com',
-				'ec2-user@ec2-184-72-79-114.compute-1.amazonaws.com'
+				'ec2-user@ec2-184-72-79-114.compute-1.amazonaws.com',
+				'ec2-user@ec2-107-20-117-21.compute-1.amazonaws.com',
+				'ec2-user@ec2-50-16-35-89.compute-1.amazonaws.com',
+				'ec2-user@ec2-50-16-162-62.compute-1.amazonaws.com',
+				'ec2-user@ec2-50-17-104-123.compute-1.amazonaws.com',
+				'ec2-user@ec2-174-129-130-158.compute-1.amazonaws.com',
+				'ec2-user@ec2-23-20-29-2.compute-1.amazonaws.com',
+				'ec2-user@ec2-23-20-16-14.compute-1.amazonaws.com'
                 ]
 }
 
