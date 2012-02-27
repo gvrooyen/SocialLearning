@@ -162,7 +162,7 @@ def copy(db, source, dest):
 
 	for item in coll_source.find():
 		coll_dest.insert(item)
-		
+
 
 if __name__ == '__main__':
 
@@ -170,9 +170,9 @@ if __name__ == '__main__':
 
 	parser.add_argument('command', choices=['stats', 'champ', 'fitness', 'gather', 'scatter', 'copy'],
 						help="Operation to perform.")
-	parser.add_argument('source', type=str, default=None,
+	parser.add_argument('source', type=str, default=None, nargs='?',
 		help="Source deme for the 'copy' and 'champ' commands")
-	parser.add_argument('dest', type=str, default=None,
+	parser.add_argument('dest', type=str, default=None, nargs='?',
 		help = "Destination deme for the 'copy' command")
 
 	args = parser.parse_args()
