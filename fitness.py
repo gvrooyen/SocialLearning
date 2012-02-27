@@ -34,7 +34,7 @@ agent = None
 lock = Lock()
 
 logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
+logger.addHandler(NullHandler())
 
 
 class RunResults():
