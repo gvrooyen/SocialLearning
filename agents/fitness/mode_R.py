@@ -14,8 +14,8 @@ def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, hist
 
         assert entryRound == 0
         # Exit condition 1: The agent is a pioneer, and N_rounds rounds have elapsed
-        if (roundsAlive >= 11) and (historyActs[0] == -1):
-            return (1,11)
+        if (roundsAlive >= 12) and (historyActs[0] == -1):
+            return (1,12)
         # Exit condition 2: We've tested, and the agent is not a pioneer
         elif (len(historyActs) > 0) and (historyActs[0] > -1):
             return (2,roundsAlive)
@@ -51,27 +51,22 @@ def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, hist
 
         return False    # Terminal trait
 
-    def DiscreteDistributionD_done(entryRound):
+    def DiscreteDistributionH_done(entryRound):
 
         return False    # Terminal trait
 
-    def DiscreteDistributionE_done(entryRound):
+    def StudyB_done(entryRound):
 
-        return False    # Terminal trait
-
-    def DiscreteDistributionF_done(entryRound):
-
-        return False    # Terminal trait
-
-    def DiscreteDistributionB_done(entryRound):
-
-        return False    # Terminal trait
+        # print entryRound, 10, historyRounds[-1]
+        if len(historyRounds) == 0:
+            return False
+        if entryRound + 10 > historyRounds[-1]:
+            # We haven't made a move yet
+            return False
+        else:
+            return (1,entryRound + 10)
 
     def DiscreteDistributionG_done(entryRound):
-
-        return False    # Terminal trait
-
-    def DiscreteDistributionH_done(entryRound):
 
         return False    # Terminal trait
 
@@ -83,17 +78,11 @@ def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, hist
 
     state_matrix.append(('InnovationBeat', InnovationBeat_done, []))
 
-    state_matrix.append(('DiscreteDistributionD', DiscreteDistributionD_done, []))
+    state_matrix.append(('DiscreteDistributionH', DiscreteDistributionH_done, []))
 
-    state_matrix.append(('DiscreteDistributionE', DiscreteDistributionE_done, []))
-
-    state_matrix.append(('DiscreteDistributionF', DiscreteDistributionF_done, []))
-
-    state_matrix.append(('DiscreteDistributionB', DiscreteDistributionB_done, []))
+    state_matrix.append(('StudyB', StudyB_done, [4]))
 
     state_matrix.append(('DiscreteDistributionG', DiscreteDistributionG_done, []))
-
-    state_matrix.append(('DiscreteDistributionH', DiscreteDistributionH_done, []))
     
     def traverse_states(state_matrix, state_idx = 0, entry_round = 0, recursion_depth = 0):
         if recursion_depth > 128:
@@ -181,8 +170,8 @@ def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, hist
 
             # The value of the minimum round allows us to determine at what offset the "innovation beat" occurs
             # relative to this individual's first round of life. We would like to later calculate
-            # e.g. [-1, 1, 2, 1, 2, 2, 2, 2, 1, 2][(roundsAlive - offset) % 4] to determine what move in the sequence to play
-            # recall that [-1, 1, 2, 1, 2, 2, 2, 2, 1, 2][0] is the INNOVATE round).
+            # e.g. [-1, 1, 2, 2, 2, 2, 2, 2, 2, 2][(roundsAlive - offset) % 4] to determine what move in the sequence to play
+            # recall that [-1, 1, 2, 2, 2, 2, 2, 2, 2, 2][0] is the INNOVATE round).
             #
             # If the min_round was found at round 13, and N_Seq == 4, offset must be 1, so that INNOVATE can
             # again be played at round 17, because (17 - 1) % 4 is zero.
@@ -210,12 +199,12 @@ def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, hist
 
                 # It's no use checking for unambiguous correspondence if the sequences play the same move at
                 # this point
-                if [-1, 1, 2, 1, 2, 2, 2, 2, 1, 2][s] != [-1, 0, 1, 2, 1, 1, 1, 1, 2, 1][s]:
-                    if m == [-1, 1, 2, 1, 2, 2, 2, 2, 1, 2][s]:
-                        seq = [-1, 1, 2, 1, 2, 2, 2, 2, 1, 2]
+                if [-1, 1, 2, 2, 2, 2, 2, 2, 2, 2][s] != [-1, 0, 1, 1, 1, 1, 1, 1, 2, 1][s]:
+                    if m == [-1, 1, 2, 2, 2, 2, 2, 2, 2, 2][s]:
+                        seq = [-1, 1, 2, 2, 2, 2, 2, 2, 2, 2]
                         break
-                    elif m == [-1, 0, 1, 2, 1, 1, 1, 1, 2, 1][s]:
-                        seq = [-1, 0, 1, 2, 1, 1, 1, 1, 2, 1]
+                    elif m == [-1, 0, 1, 1, 1, 1, 1, 1, 2, 1][s]:
+                        seq = [-1, 0, 1, 1, 1, 1, 1, 1, 2, 1]
                         break
                     else:
                         # Keep on looking
@@ -223,7 +212,7 @@ def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, hist
 
             if not seq:
                 # We didn't find any evidence that we made a choice about a group to belong to yet. Pick one!
-                seq = random.choice([[-1, 1, 2, 1, 2, 2, 2, 2, 1, 2], [-1, 0, 1, 2, 1, 1, 1, 1, 2, 1]])
+                seq = random.choice([[-1, 1, 2, 2, 2, 2, 2, 2, 2, 2], [-1, 0, 1, 1, 1, 1, 1, 1, 2, 1]])
 
             next_move = seq[(roundsAlive - offset + 1) % 8]
 
@@ -243,41 +232,9 @@ def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, hist
                 return (INNOVATE,)
 
 
-    elif state == 'DiscreteDistributionD':
+    elif state == 'DiscreteDistributionH':
 
-        interval = [0.688225226287, 0.313000741225, 1.0, 0.632025649786]
-
-        for i in xrange(1,4):
-            interval[i] = interval[i-1] + interval[i]
-
-        # Normalise the intervals
-        if canPlayRefine:
-            interval = [x/interval[-1] for x in interval]
-        else:
-            interval = [x/interval[-2] for x in interval]
-        
-        # If the repertoire is empty, only Pi or Po should be chosen:
-        if len(repertoire) == 0:
-            interval = [x/interval[-3] for x in interval]
-
-        roll = random.random()
-
-        if roll <= interval[0]:
-            return (INNOVATE, )
-        elif roll <= interval[1]:
-            return (OBSERVE, )
-        elif roll <= interval[2]:
-            return (EXPLOIT, max(repertoire, key=repertoire.get))
-        elif (roll <= interval[3]) and canPlayRefine:   # Add the sanity check in case of rounding errors
-            return (REFINE, max(repertoire, key=repertoire.get))
-        else:
-            # Catch-all for rounding errors
-            return (EXPLOIT, max(repertoire, key=repertoire.get))
-
-
-    elif state == 'DiscreteDistributionE':
-
-        interval = [0.593672732328, 0.449470933823, 0.359669966824, 0.996589936362]
+        interval = [0.43299723857, 0.332296785847, 0.883243406336, 0.694595873393]
 
         for i in xrange(1,4):
             interval[i] = interval[i-1] + interval[i]
@@ -307,11 +264,11 @@ def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, hist
             return (EXPLOIT, max(repertoire, key=repertoire.get))
 
 
-    elif state == 'DiscreteDistributionF':
+    elif state == 'StudyB':
 
-        interval = [0.888221606234, 0.527235405788, 0.87306348026, 0.592313951102]
+        interval = [0.530018586998, 0.490399396595, 0.438610593579]
 
-        for i in xrange(1,4):
+        for i in xrange(1,3):
             interval[i] = interval[i-1] + interval[i]
 
         # Normalise the intervals
@@ -322,39 +279,7 @@ def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, hist
         
         # If the repertoire is empty, only Pi or Po should be chosen:
         if len(repertoire) == 0:
-            interval = [x/interval[-3] for x in interval]
-
-        roll = random.random()
-
-        if roll <= interval[0]:
-            return (INNOVATE, )
-        elif roll <= interval[1]:
-            return (OBSERVE, )
-        elif roll <= interval[2]:
-            return (EXPLOIT, max(repertoire, key=repertoire.get))
-        elif (roll <= interval[3]) and canPlayRefine:   # Add the sanity check in case of rounding errors
-            return (REFINE, max(repertoire, key=repertoire.get))
-        else:
-            # Catch-all for rounding errors
-            return (EXPLOIT, max(repertoire, key=repertoire.get))
-
-
-    elif state == 'DiscreteDistributionB':
-
-        interval = [0.955060942573, 0.54848198769, 0.573765550258, 0.520753363643]
-
-        for i in xrange(1,4):
-            interval[i] = interval[i-1] + interval[i]
-
-        # Normalise the intervals
-        if canPlayRefine:
-            interval = [x/interval[-1] for x in interval]
-        else:
             interval = [x/interval[-2] for x in interval]
-        
-        # If the repertoire is empty, only Pi or Po should be chosen:
-        if len(repertoire) == 0:
-            interval = [x/interval[-3] for x in interval]
 
         roll = random.random()
 
@@ -362,50 +287,16 @@ def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, hist
             return (INNOVATE, )
         elif roll <= interval[1]:
             return (OBSERVE, )
-        elif roll <= interval[2]:
-            return (EXPLOIT, max(repertoire, key=repertoire.get))
-        elif (roll <= interval[3]) and canPlayRefine:   # Add the sanity check in case of rounding errors
+        elif (roll <= interval[2]) and canPlayRefine:   # Add the sanity check in case of rounding errors
             return (REFINE, max(repertoire, key=repertoire.get))
         else:
             # Catch-all for rounding errors
-            return (EXPLOIT, max(repertoire, key=repertoire.get))
+            return (INNOVATE,)
 
 
     elif state == 'DiscreteDistributionG':
 
-        interval = [0.625991033733, 0.910672601306, 0.882520811587, 0.501983977477]
-
-        for i in xrange(1,4):
-            interval[i] = interval[i-1] + interval[i]
-
-        # Normalise the intervals
-        if canPlayRefine:
-            interval = [x/interval[-1] for x in interval]
-        else:
-            interval = [x/interval[-2] for x in interval]
-        
-        # If the repertoire is empty, only Pi or Po should be chosen:
-        if len(repertoire) == 0:
-            interval = [x/interval[-3] for x in interval]
-
-        roll = random.random()
-
-        if roll <= interval[0]:
-            return (INNOVATE, )
-        elif roll <= interval[1]:
-            return (OBSERVE, )
-        elif roll <= interval[2]:
-            return (EXPLOIT, max(repertoire, key=repertoire.get))
-        elif (roll <= interval[3]) and canPlayRefine:   # Add the sanity check in case of rounding errors
-            return (REFINE, max(repertoire, key=repertoire.get))
-        else:
-            # Catch-all for rounding errors
-            return (EXPLOIT, max(repertoire, key=repertoire.get))
-
-
-    elif state == 'DiscreteDistributionH':
-
-        interval = [0.414318762223, 0.302474894857, 0.757859587181, 0.991909749526]
+        interval = [0.628262499269, 0.925421235594, 0.978045090927, 0.293593682663]
 
         for i in xrange(1,4):
             interval[i] = interval[i-1] + interval[i]
@@ -440,6 +331,6 @@ def move(roundsAlive, repertoire, historyRounds, historyMoves, historyActs, hist
 
     
 def observe_who(exploiterData):
-        return sorted(exploiterData,key=lambda x:x[TOTAL_PAY],reverse=True)
+        return sorted(exploiterData,key=lambda x:x[N_OFFSPRING],reverse=True)
     
 
