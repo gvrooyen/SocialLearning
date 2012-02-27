@@ -48,7 +48,7 @@ def print_champ(db, deme):
 	for coll_name in coll_list:
 		coll = db[coll_name]
 		for i in coll.find():
-			if i['BOG']['fitness'] > fitness:
+			if (i['generation'] > 0) and (i['BOG']['fitness'] > fitness):
 				champ = i
 				champ_coll = coll_name
 				fitness = i['BOG']['fitness']
