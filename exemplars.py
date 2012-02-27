@@ -147,13 +147,13 @@ def BeatnikInSpace():
 	T = traits.InnovationBeatSpatial.InnovationBeatSpatial()
 	T.N_Seq = 8
 	T.Pa = 0.4187
-	T.seq_A = [1, 1, 1, 1, 1, 2, 1, 1, 1, 1]
-	T.seq_B = [0, 0, 2, 1, 1, 1, 1, 1, 0, 2]
+	T.seq_A = [1, 1, 1, 1, 1, 1, 1, 1, 2, 1]
+	T.seq_B = [0, 1, 2, 1, 1, 1, 1, 1, 1, 1]
 	self_traits['InnovationBeatSpatial'] = T
 
 	T = traits.Study.Study()
 	T.N_rounds = 14
-	T.Pi = 0.6465
+	T.Pi = 0.6145
 	T.Po = 0.2549
 	T.Pr = 0.6606
 	self_traits['Study'] = T
