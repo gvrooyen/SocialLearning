@@ -62,7 +62,8 @@ def print_champ(db, deme):
 
 def print_fitness(db):
 	"""
-	Print the highest fitness discovered in each deme.
+	Print the highest fitness discovered in each deme. The zeroth generation is ignored, since it is likely to contain
+	seeded individuals, whose fitness might not be accurate for the deme.
 	"""
 	coll_names = db.collection_names()
 
@@ -76,7 +77,7 @@ def print_fitness(db):
 				coll = db[subm]
 				fitness = 0.0
 				for i in coll.find():
-					if i['BOG']['fitness'] > fitness:
+					if (i['generation'] > 0) and (i['BOG']['fitness'] > fitness):
 						fitness = i['BOG']['fitness']
 				result[m][idx] = fitness
 

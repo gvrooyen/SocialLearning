@@ -13,22 +13,22 @@ AWS_ACCESS = 'AKIAI7N2KZW6HMYE3QDQ'
 AWS_SECRET = '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'
 
 
-MAX_DEMES = 10
+MAX_DEMES = 8
 MAX_GENERATIONS = 40
 
 modes = [
-	('ord', []),
+	#('ord', []),
 	('orD', ['--mode_spatial']),
-	('oRd', ['--mode_cumulative']),
-	('oRD', ['--mode_spatial', '--mode_cumulative']),
+	#('oRd', ['--mode_cumulative']),
+	#('oRD', ['--mode_spatial', '--mode_cumulative']),
 	('Ord', ['--mode_model_bias']),
 	('OrD', ['--mode_model_bias', '--mode_spatial']),
-	('ORd', ['--mode_model_bias', '--mode_cumulative']),
-	('ORD', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative']),
-	('ex_BFD', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=BifurcateDiscrete']),
-	('ex_CPD', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=ContinuousProfessionalDevelopment']),
-	('ex_BTN', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=Beatnik'],
-	('ex_BIS', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=BeatnikInSpace']))
+	#('ORd', ['--mode_model_bias', '--mode_cumulative']),
+	#('ORD', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative']),
+	#('ex_BFD', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=BifurcateDiscrete']),
+	#('ex_CPD', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=ContinuousProfessionalDevelopment']),
+	#('ex_BTN', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=Beatnik'],
+	#('ex_BIS', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=BeatnikInSpace']))
 ]
 
 def assess_progress():
@@ -71,10 +71,23 @@ jobs = []
 # through modes as much as possible to prevent servants from duplication generations
 # (it's not wasted effort, but it's not ideal either)
 
-for n_bucket in xrange(0, MAX_DEMES):
-	nothing_changed = False
-	while not nothing_changed:
-		nothing_changed = True
+# for n_bucket in xrange(0, MAX_DEMES):
+# 	nothing_changed = False
+# 	while not nothing_changed:
+# 		nothing_changed = True
+# 		for m in modes:
+# 			if pg[m[0]][n_bucket] < MAX_GENERATIONS:
+# 				print(m[0] + str(n_bucket))
+# 				msg = Message()
+# 				msg.set_body(json.dumps(['-d ' + m[0] + str(n_bucket)] + m[1]))
+# 				jobs.append(msg)
+# 				nothing_changed = False
+# 				pg[m[0]][n_bucket] += 1
+
+nothing_changed = False
+while not nothing_changed:
+	nothing_changed = True
+	for n_bucket in xrange(0, MAX_DEMES):
 		for m in modes:
 			if pg[m[0]][n_bucket] < MAX_GENERATIONS:
 				print(m[0] + str(n_bucket))
