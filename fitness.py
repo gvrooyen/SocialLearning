@@ -20,6 +20,15 @@ global accumulated_move_time
 global lock
 global agent
 
+# Make sure a NullHandler is available
+# This was added in Python 2.7/3.2
+try:
+    from logging import NullHandler
+except ImportError:
+    class NullHandler(logging.Handler):
+        def emit(self, record):
+            pass
+
 agent = None
 
 lock = Lock()
