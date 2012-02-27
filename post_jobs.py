@@ -13,18 +13,18 @@ AWS_ACCESS = 'AKIAI7N2KZW6HMYE3QDQ'
 AWS_SECRET = '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'
 
 
-MAX_DEMES = 8
+MAX_DEMES = 5
 MAX_GENERATIONS = 40
 
 modes = [
-	#('ord', []),
+	('ord', []),
 	('orD', ['--mode_spatial']),
-	#('oRd', ['--mode_cumulative']),
-	#('oRD', ['--mode_spatial', '--mode_cumulative']),
+	('oRd', ['--mode_cumulative']),
+	('oRD', ['--mode_spatial', '--mode_cumulative']),
 	('Ord', ['--mode_model_bias']),
 	('OrD', ['--mode_model_bias', '--mode_spatial']),
-	#('ORd', ['--mode_model_bias', '--mode_cumulative']),
-	#('ORD', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative']),
+	('ORd', ['--mode_model_bias', '--mode_cumulative']),
+	('ORD', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative']),
 	#('ex_BFD', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=BifurcateDiscrete']),
 	#('ex_CPD', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=ContinuousProfessionalDevelopment']),
 	#('ex_BTN', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=Beatnik'],
