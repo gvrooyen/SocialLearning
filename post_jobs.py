@@ -13,7 +13,7 @@ AWS_ACCESS = 'AKIAI7N2KZW6HMYE3QDQ'
 AWS_SECRET = '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'
 
 
-MAX_DEMES = 6
+MAX_DEMES = 7
 MAX_GENERATIONS = 40
 
 modes = [
@@ -27,8 +27,9 @@ modes = [
 	#('ORD', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative']),
 	#('ex_BFD', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=BifurcateDiscrete']),
 	#('ex_CPD', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=ContinuousProfessionalDevelopment']),
-	#('ex_BTN', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=Beatnik'],
-	#('ex_BIS', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=BeatnikInSpace']))
+	#('ex_BTN', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=Beatnik']),
+	#('ex_BIS', ['--mode_model_bias', '--mode_spatial', '--mode_cumulative', '--exemplar=BeatnikInSpace']),
+	('ex_REF', ['--mode_spatial'])
 ]
 
 def assess_progress():
@@ -48,7 +49,7 @@ def assess_progress():
 	for m in modes:
 		result[m[0]] = [0]*MAX_DEMES
 		for subm in [c for c in coll_names if c.startswith('gp_ '+m[0])]:
-			idx = int(subm[7:])
+			idx = int(subm[4 + len(m[0]):])
 			if idx < MAX_DEMES:
 				coll = db[subm]
 				result[m[0]][idx] = coll.count()

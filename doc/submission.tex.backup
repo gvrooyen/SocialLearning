@@ -1,0 +1,43 @@
+\documentclass[a4paper,10pt]{article}
+%\documentclass[a4paper,10pt]{scrartcl}
+
+\usepackage{xltxtra}
+
+\setromanfont[Mapping=tex-text]{Linux Libertine O}
+% \setsansfont[Mapping=tex-text]{DejaVu Sans}
+% \setmonofont[Mapping=tex-text]{DejaVu Sans Mono}
+
+\defaultfontfeatures{Mapping=tex-text}
+\setmainfont[SmallCapsFont = Fontin SmallCaps]{Fontin}
+
+\title{Social Learning Strategies Tournament II Entry: BlueGenes}
+\author{G-J van Rooyen}
+\date{28 February 2012}
+
+\begin{document}
+\maketitle
+
+\section{Overview}
+\emph{BlueGenes} is a genetically programmed entry to the Social Learning Strategies Tournament II\@.
+The model script is mostly machine generated, based on parametric trait algorithms that the programmer can
+provide as viable. The solution experiments with a new idea in genetic programming, where evolution is not based
+on a tree of primitives, but rather on a state graph of parametric algorithms (traits) and transition conditions
+that can be suggested by the designer.
+
+The entry itself is largly machine generated, and should ideally not be debugged directly. The \texttt{move()}
+function is split into eight parts, corresponding to all possible combinations of \texttt{canChooseModel},
+\texttt{canPlayRefine} and \texttt{multipleDemes}. Each algorithm inside such a combination has been individually
+evolved to best fit the constraints.
+
+Each algorithm is defined as a state graph, which allows an individual to change its behaviour over its lifetime.
+This is achieved by defining each state's completion criteria (\texttt{*\_done()} function) based on only its
+observed history, and by selecting a current state based on previous states' exit criteria and exit rounds. Since no
+local information can be stored by an individual, this information must be built up by the individual during each
+invocation.
+
+Furthermore, some traits allow individuals to diversify across their current population. This is achieved by playing
+a random move during certain key moments in an individual's history (usually in terms of its state graph). These
+random choices can be detected in subsequent rounds, and be used to individualise the agent's behaviour, depending on
+that initial choice.
+
+\end{document}

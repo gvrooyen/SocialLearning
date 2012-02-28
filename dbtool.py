@@ -11,7 +11,7 @@ MONGO_PASSWORD = 'twasbrilligandtheslithytoves'
 MAX_DEMES = 10
 GENERATION_THRESHOLD = 5
 
-modes = ('ord', 'orD', 'oRd', 'oRD', 'Ord', 'OrD', 'ORd', 'ORD', 'ex_BFD', 'ex_CPD', 'ex_BTN')
+modes = ('ord', 'orD', 'oRd', 'oRD', 'Ord', 'OrD', 'ORd', 'ORD', 'ex_BFD', 'ex_CPD', 'ex_BTN', 'ex_REF')
 
 def print_stats(db):
 	coll_names = db.collection_names()
