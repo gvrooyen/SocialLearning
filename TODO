@@ -1,4 +1,0 @@
-simulate.py:
-	
-ANALYSIS:
-	1. Plot average payoff vs number of rounds, to determine a lower bound for N_rounds for assessing fitness
