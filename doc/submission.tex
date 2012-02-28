@@ -178,6 +178,17 @@ This variation on \emph{InnovationBeat} takes the \emph{multipleDemes} scenario 
 migrates across demes, its earlier synchronisation is no longer valid. In this case, the state exits (potentially
 re-entering itself immediately to resynchronise, or perhaps spending a few rounds in the \emph{Study} state).
 
+\section{State machine}
+Since individual agents cannot store any persistent information, statefulness must be embedded in an agent's
+move history. To achieve this, each trait must provide a \texttt{*\_done()} function (e.g.\ \texttt{Pioneering\_done()}
+for the \emph{Pioneering} trait). This function should answer the following question: Given that this state
+was entered at round \texttt{entryRound}, plus the complete move history of the agent, is the agent still in
+this state? If not, by which output edge did it exit, and at which round?
+
+This allows the agent to daisy-chain states and traverse the state graph each time a move is made. The entry/exit round
+mechanism allows states to be re-entrant, i.e.\ an agent can enter and exit a particular state multiple times
+during its lifetime.
+
 \section{Submission}
 The tournament submission includes:
 \begin{itemize}
@@ -193,9 +204,23 @@ The tournament submission includes:
    Academic Free License 3.0.
 \end{itemize}
 
+\section{Contact details}
+{\raggedright
+\begin{quote}
+ Dr G-J van Rooyen\\
+ E315, Dept.\ E\&E Engineering\\
+ Stellenbosch University\\
+ SOUTH AFRICA\\
+ \vspace{2ex}
+ Tel: +27-82-8725905\\
+ Fax: +27-21-8083951\\
+ \vspace{2ex}
+ E-mail: \href{mailto:gvrooyen@sun.ac.za}{gvrooyen@sun.ac.za}
+\end{quote}
+}
 
 \section{Declaration}
 By submitting this entry, I hereby accept the rules contained in the ``Rules for entry'' document provided by
-the organisers on the tournament website.
+the organisers on the tournament website. I give permission for my name to be publicly associated with this tournament.
 
 \end{document}
