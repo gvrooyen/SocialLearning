@@ -72,6 +72,7 @@ if __name__ == '__main__':
         print(agent.__name__)
         print(params)
         print("FITNESS: %d" % sample.avg_payoff)
+        print("ERRORS: %d/%d" % (sample.N_errors, sample.N_runs))
 
         # Lastly, pack the record for this simulation run in a way that can neatly be stored in the database
 
