@@ -1,3 +1,12 @@
+# Copyright (c) 2012 Stellenbosch University, 2012
+# This source code is released under the Academic Free License 3.0
+# See https://github.com/gvrooyen/SocialLearning/blob/master/LICENSE for the full text of the license.
+# Author: G-J van Rooyen <gvrooyen@sun.ac.za>
+
+"""
+Run a single round of a genetic programming simulation.
+"""
+
 import solegene
 import argparse
 import simulate
@@ -31,10 +40,10 @@ def rungp(d = 'default', n = 100, cloud = False, multiproc = False, debug = Fals
 	logger.debug("Simulating with parameters:")
 	logger.debug(pprint.pformat(sim_parameters))
 
-	connection = pymongo.Connection('sl-master.dyndns-server.com')
+	connection = pymongo.Connection()
 
 	db = connection.SocialLearning
-	db.authenticate('sociallearning', 'twasbrilligandtheslithytoves')
+	# db.authenticate('', '')
 
 	coll_generations = db['gp_' + d]
 
