@@ -1,3 +1,12 @@
+# Copyright (c) 2012 Stellenbosch University, 2012
+# This source code is released under the Academic Free License 3.0
+# See https://github.com/gvrooyen/SocialLearning/blob/master/LICENSE for the full text of the license.
+# Author: G-J van Rooyen <gvrooyen@sun.ac.za>
+
+"""
+Draw a pretty graph of a given state graph for an agent.
+"""
+
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch, Circle
 import numpy as np

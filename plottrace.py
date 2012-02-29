@@ -1,11 +1,22 @@
+# Copyright (c) 2012 Stellenbosch University, 2012
+# This source code is released under the Academic Free License 3.0
+# See https://github.com/gvrooyen/SocialLearning/blob/master/LICENSE for the full text of the license.
+# Author: G-J van Rooyen <gvrooyen@sun.ac.za>
+
+"""
+Script to estimate the rate at which the simulator's estimate of an agent's fitness,
+converges to its final value. This can be used to decide how many rounds to play during
+a genetic programming generation.
+"""
+
 from matplotlib.pylab import *
 import matplotlib.pyplot as plt
 from numpy import *
 import pymongo
 
-connection = pymongo.Connection('enoch.dyndns-home.com')
+connection = pymongo.Connection()
 db = connection.SocialLearning
-db.authenticate('gvrooyen','ala+joen')
+# db.authenticate('', '')
 dbc = db.trace_payoffs
 
 estimate = []

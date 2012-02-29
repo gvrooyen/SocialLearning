@@ -1,3 +1,13 @@
+# Copyright (c) 2012 Stellenbosch University, 2012
+# This source code is released under the Academic Free License 3.0
+# See https://github.com/gvrooyen/SocialLearning/blob/master/LICENSE for the full text of the license.
+# Author: G-J van Rooyen <gvrooyen@sun.ac.za>
+
+"""
+Grab genetic programming tasks from the AWS SQS queue, and run the simulations.
+This script is intended to be called from the command line.
+"""
+
 from boto.sqs.connection import SQSConnection
 import logging
 import subprocess
@@ -6,8 +16,8 @@ import time
 import os
 import json
 
-AWS_ACCESS = 'AKIAI7N2KZW6HMYE3QDQ'
-AWS_SECRET = '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'
+AWS_ACCESS = ''
+AWS_SECRET = ''
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())

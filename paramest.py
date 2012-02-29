@@ -1,3 +1,13 @@
+# Copyright (c) 2012 Stellenbosch University, 2012
+# This source code is released under the Academic Free License 3.0
+# See https://github.com/gvrooyen/SocialLearning/blob/master/LICENSE for the full text of the license.
+# Author: G-J van Rooyen <gvrooyen@sun.ac.za>
+
+"""
+The paramest.Hat class provides algorithms to estimate N_observe, P_c and P_copyFail, given the variables
+that are available to an agent during its move() function.
+"""
+
 from moves import *
 
 class Hat:

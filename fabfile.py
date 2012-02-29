@@ -1,3 +1,13 @@
+# Copyright (c) 2012 Stellenbosch University, 2012
+# This source code is released under the Academic Free License 3.0
+# See https://github.com/gvrooyen/SocialLearning/blob/master/LICENSE for the full text of the license.
+# Author: G-J van Rooyen <gvrooyen@sun.ac.za>
+
+"""
+Fabric utilities to do deployment and run commands across a group of (typically cloud-based)
+servers.
+"""
+
 from fabric.api import *
 
 env.roledefs = {
@@ -26,11 +36,20 @@ env.roledefs = {
 @roles('servant')
 @parallel
 def check_load():
+	"""
+	Check the number of python processes currently running on the servant instances.
+	"""
+
 	run('ps -u ec2-user r -f | grep python | wc -l')
 
 @roles('servant')
 @parallel
 def push_update():
+	"""
+	Let each servant instance pull the latest software update from git. Also, remove some
+	temporary data logs.
+	"""
+
 	try:
 		run('killall python')
 	except:
@@ -44,11 +63,19 @@ def push_update():
 
 @roles(['master', 'servant'])
 def change_passphrase():
+	"""
+	Change the SSH passphrase on each server.
+	"""
+
 	run('ssh-keygen -p')
 
 @roles('servant')
 @parallel
 def flush_logs():
+	"""
+	Clear up disk space used by the picloud logs.
+	"""
+
 	try:
 		run('rm -rf ~/.picloud/datalogs/Simulation')
 	except:
@@ -57,4 +84,8 @@ def flush_logs():
 @roles(['master', 'servant'])
 @parallel
 def disk_usage():
+	"""
+	Display the disk space remaining on each server.
+	"""
+
 	run('df -h /')

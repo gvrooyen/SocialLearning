@@ -1,3 +1,12 @@
+# Copyright (c) 2012 Stellenbosch University, 2012
+# This source code is released under the Academic Free License 3.0
+# See https://github.com/gvrooyen/SocialLearning/blob/master/LICENSE for the full text of the license.
+# Author: G-J van Rooyen <gvrooyen@sun.ac.za>
+
+"""
+plotfitness.surfplot draws a 3D plot of an agent's fitness function.
+"""
+
 from matplotlib.pylab import *
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -90,9 +99,9 @@ if __name__ == '__main__':
 
     global axes
     
-    connection = pymongo.Connection('enoch.dyndns-home.com') 
+    connection = pymongo.Connection() 
     db = connection.SocialLearning
-    db.authenticate('gvrooyen','ala+joen')
+    # db.authenticate('', '')
     dbc = db.fitness
     
     # Create the plotting figure and the 3D axes.

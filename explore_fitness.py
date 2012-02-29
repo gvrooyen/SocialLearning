@@ -1,3 +1,13 @@
+# Copyright (c) 2012 Stellenbosch University, 2012
+# This source code is released under the Academic Free License 3.0
+# See https://github.com/gvrooyen/SocialLearning/blob/master/LICENSE for the full text of the license.
+# Author: G-J van Rooyen <gvrooyen@sun.ac.za>
+
+"""
+Run fitness tests for a specified agent, randomly selected over the specified parameter ranges, and log
+the fitness results to a MongoDB database. This script is intended to be run from the command line.
+"""
+
 import fitness
 import repodata
 import random

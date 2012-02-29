@@ -1,4 +1,12 @@
-# -*- coding: iso-8859-15 -*-
+# Copyright (c) 2012 Stellenbosch University, 2012
+# This source code is released under the Academic Free License 3.0
+# See https://github.com/gvrooyen/SocialLearning/blob/master/LICENSE for the full text of the license.
+# Author: G-J van Rooyen <gvrooyen@sun.ac.za>
+
+"""
+Measure the fitness (average payoff per round over multiple simulation runs) of a specified agent.
+This module can also be used as a standalone command line script.
+"""
 
 import simulate
 import random
