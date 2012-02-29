@@ -1,3 +1,8 @@
+# Copyright (c) 2012 Stellenbosch University, 2012
+# This source code is released under the Academic Free License 3.0
+# See https://github.com/gvrooyen/SocialLearning/blob/master/LICENSE for the full text of the license.
+# Author: G-J van Rooyen <gvrooyen@sun.ac.za>
+
 """
 solegene: A genetic programming framework for the Social Learning challenge.
 """
@@ -9,7 +14,6 @@ import logging
 import inspect
 import re
 import string
-# import PythonTidy
 import StringIO
 import traits
 import observe_strategies
@@ -373,10 +377,6 @@ class Genome(object):
             move +=     "        raise AgentError('No such state: %s' % state)\n"
         
         result = string.Template(render_template)
-        # file_in = StringIO.StringIO(result.substitute(move = move, observe = observe))
-        # file_out = StringIO.StringIO()
-        # PythonTidy.tidy_up(file_in, file_out)
-        # return file_out.getvalue()
         return result.substitute(move = move, observe = observe)
     
     
