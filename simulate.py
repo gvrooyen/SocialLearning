@@ -1,4 +1,14 @@
-# -*- coding: iso-8859-15 -*-
+# Copyright (c) 2012 Stellenbosch University, 2012
+# This source code is released under the Academic Free License 3.0
+# See https://github.com/gvrooyen/SocialLearning/blob/master/LICENSE for the full text of the license.
+# Author: G-J van Rooyen <gvrooyen@sun.ac.za>
+
+"""
+Workhorse module of the Social Learning simulator. The main class defined in this module, is
+simulate.Simulate(), which creates a new simulation object, and initialises it with a new population.
+This simulation object then can step through simulation rounds, or run for the specified number
+of rounds.
+"""
 
 from moves import *
 import agent
@@ -9,6 +19,9 @@ import traceback
 import timer
 from scipy.stats import poisson
 from math import *
+
+# The following constants define default values for typical simulation parameters. These
+# defaults can usually be overridden when parameters are passed.
 
 N_ACTS = 100                # Number of acts in the environment's repertoire
 N_POPULATION = 100          # Population size of a single deme
@@ -25,17 +38,24 @@ N_MIGRATE = 5               # Number of individuals migrating each round
 R_MAX = 100                 # Maximum refinement level
 MEAN_PAYOFF = 10            # Mean of the basic payoff distribution
 
+
 def scipy_copy_error(x):
+    """
+    DEPRECTATED. Add a Poisson-distributed error to the integer x.
+
+    This is the old version of the function, which uses the SciPy implementation. This version is not thread-safe,
+    and cannot be used for repeatable runs in a multiprocessed simulation.
+    """
+
     # We make the assumption that the data point "0" can be copied (it often has to be), even though the Poisson
     # distribution is not defined for this mean. However, the distribution is defined for very small means, in which
     # it, in the limit, always returns zero.
-    #
-    # This is the old version of the function, which uses the SciPy implementation. This version is not thread-safe,
-    # and cannot be used for repeatable runs in a multiprocessed simulation.
+    
     try:
         return poisson.rvs(x)
     except ValueError:
         return 0
+
 
 def gammaln(xx):
     """
@@ -102,9 +122,21 @@ def copy_error(xm, func_random):
     
         
 class NotImplementedError(Exception):
+    """
+    Throw an exception if an unimplemented function is called. This class is added for
+    compatibility with versions of Python before 2.7 (in which it is available natively).
+    """
     pass
 
+
 class Individual:
+
+    """
+    An individual agent in the Social Learning simulation. This class exists only to
+    record the agent's personal history, deme and repertoire of known acts. An object
+    of class simulate.Individual() is always owned by a deme of class simulate.Deme().
+    """
+
     def __init__(self):
         self.roundsAlive = 0
         self.timesCopied = 0
@@ -128,8 +160,20 @@ class Individual:
             
         
 class Deme:
+
+    """
+    A collection of individuals in the Social Learning simulation, with shared payoffs
+    for acts. The simulate.Deme() object owns a population of simulate.Individual() objects.
+    The deme is in turn owned by the simulate.Simulate() object.
+    """
     
     def randpayoff(self, distribution = 'default'):
+        """
+        Produce a random payoff for an act, as a sample of an exponential distribution.
+        This is used when the repertoire of acts is initialised, or an act's payoff changes
+        randomly.
+        """
+
         if (distribution == 'default'):
             return int(self.random.expovariate(1.0/MEAN_PAYOFF)+1.0)
 
@@ -144,6 +188,9 @@ class Deme:
         self.stat_act_updates = 0
         
     def modify_environment(self, P_c = P_C):
+        """
+        With probability P_c, change a random act's payoff to a new random value.
+        """
         for i in range(0, N_ACTS):
             if (self.random.random() <= P_c):
                 self.acts[i] = self.randpayoff()

@@ -1,3 +1,8 @@
+# Copyright (c) 2012 Stellenbosch University, 2012
+# This source code is released under the Academic Free License 3.0
+# See https://github.com/gvrooyen/SocialLearning/blob/master/LICENSE for the full text of the license.
+# Author: G-J van Rooyen <gvrooyen@sun.ac.za>
+
 from solegene import *
 from moves import *
 import random
@@ -21,6 +26,9 @@ class InnovationBeat(Trait):
     
     The remainder of the moves in each sequence can be any of EXPLOIT, OBSERVE or REFINE. In a scenario where REFINE
     cannot be played, EXPLOIT is substituted.
+
+    The approach to synchronisation used here can be seen as a form of quorum sensing, see e.g.
+    http://arxiv.org/abs/1205.2952
     """
 
     MAX_N_SEQ = 10
